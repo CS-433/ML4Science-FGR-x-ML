@@ -5,12 +5,12 @@ def MHI_Modi2019(Mh, z, model='A'):
     # from Modi+ 2019
     if(model == 'A'):
         alpha = (1+2*z)/(2+2*z)
-        Mcut = 3e9*(1+10*(3/(1+z))**8) # in Msun/h units
+        Mcut = (3e9*(1+10*(3/(1+z))**8)) # in Msun/h units
         Ah = 8e5*(1+(3.5/z)**6)*(1+z)**3 
     elif(model == 'C'):
         alpha = 0.9
         Mcut = 1.e10 # in Msun/h units
-        Ah = 3.e6*(1.+1./z)*(1+z)**3  #u.Msun
+        Ah = 3.e6*(1.+1./z)*(1+z)**3
     else:
         ValueError(' Model B is not implemented')
     M_HI = Ah * np.power(Mh/Mcut, alpha) * np.exp(-Mcut/Mh)
