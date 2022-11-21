@@ -13,6 +13,11 @@ from torch.optim.lr_scheduler import ReduceLROnPlateau
 
 # Defining activation function to use
 activation = 'sigmoid'
+# Define path for data and useful variable
+name_file = ...
+path = './outputs_test'+ name_file
+batch_size = 128
+lr = 0.1
 
 class Customized_dataset(Dataset):
 
@@ -31,22 +36,14 @@ class Customized_dataset(Dataset):
 if __name__ == '__main__':
 
     gc.collect()
-
-    # Define path for data and useful variable
-    name_file = ...
-    path = './outputs_test'+ name_file
-    batch_size = 128
-    lr = 0.1
-
+    
     # Loading dataset
     X, y, dim_feat = get_single_dataset(path)
 
     # COnverting data to pytorch dataset object
-
     X_train,X_test,y_train,y_test = train_test_split(X,y, test_size = 0.2, random_state = 2022)
 
     # Processing target data depending on activation function
-
     if activation == 'sigmoid':
         y_train = min_max_scaling(y_train)
         y_test = min_max_scaling(y_test)
@@ -60,17 +57,16 @@ if __name__ == '__main__':
     test_loader = DataLoader(dataset=test_dataset,batch_size=batch_size, shuffle=True)
     
     # Cleaning memory
-
     del train_dataset
     del test_dataset
 
     gc.collect()
 
     # Importing model and shift it on GPU (if available)
-    model = my_FNN_increasing(batch_size,dim_feat)
+    model = my_FNN_increasing(dim_feat)
+
     if(torch.cuda.is_available()): # for the case of laptop with local GPU
         model = model.cuda() 
-
 
     # Defining optimizer
     optimizer = optim.SGD(model.parameters(), lr=lr)
@@ -89,18 +85,21 @@ if __name__ == '__main__':
     #Defining useful variables for epochs
     loss_epoch_train = [] # will contain all the train losses of the different epochs
     loss_epoch_test = [] # will contain all the test losses of the different epochs
+    lr_history = []
+
+    # Moving model to GPU if possibled
+    if torch.cuda.is_available():
+                model.cuda()
 
     for epoch in range(epochs):
         
-    ##### TRAINING #####
-        
+        ##### TRAINING #####
+
         model.train() # useless since we are not using dropout and batch normalization
-        # Defining usegul variables for train_loader
+
         loss_train_vector = [] #vector of losses for a single epoch
 
         for batch_idx, (data,target) in enumerate(train_loader):
-            if torch.cuda.is_available():
-                model.cuda()
             optimizer.zero_grad()
             output = model(data)
             loss = criterion(output,target).item()
@@ -108,13 +107,16 @@ if __name__ == '__main__':
             loss.backward()
             optimizer.step()
 
+        scheduler.step(np.mean(loss_train_vector)) # scheduler step
+        lr_history.append(scheduler.get_last_lr()[0])
         loss_epoch_train.append(np.mean(loss_train_vector))
 
-    ##### TEST #####
+        ##### TEST #####
 
         # evaluate model:
-        loss_test_vector = [] #vector of losses for a single epoch
         model.eval() 
+
+        loss_test_vector = [] #vector of losses for a single epoch
         lr_history=[]
 
         for batch_idx, (data,target,y_test) in enumerate(test_loader):
@@ -123,9 +125,6 @@ if __name__ == '__main__':
 
             loss = criterion(pred,y_test).item()
             loss_test_vector.append(loss)
-
-        scheduler.step(np.mean(loss_test_vector)) # scheduler step
-        lr_history.append(scheduler.get_last_lr()[0])
         
         loss_epoch_test.append(np.mean(loss_test_vector))
     

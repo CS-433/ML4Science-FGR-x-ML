@@ -6,7 +6,7 @@ import torch.nn.functional as func
 
 class my_FNN_increasing(nn.Module):
 
-    def __init__(self,batch_size,num_feature):
+    def __init__(self,num_feature):
         super().__init__()
         self.l1 = nn.Linear(num_feature,64)
         self.l2 = nn.Sigmoid()
@@ -30,7 +30,7 @@ class my_FNN_increasing(nn.Module):
     
 class my_FNN_mirror(nn.Module):
 
-    def __init__(self,batch_size,num_feature):
+    def __init__(self,num_feature):
         super().__init__()
         self.l1 = nn.Linear(num_feature,64)
         self.l2 = nn.Sigmoid()

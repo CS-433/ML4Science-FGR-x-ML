@@ -20,9 +20,9 @@ def get_single_dataset(path, features = ['MassHalo','Nsubs','MassBH','dotMassBH'
     for idx,feature in enumerate(features[:-1]):
 
         if feature == 'VelHalo':
-            data[:,idx] = np.linalg.norm(f[feature])
+            data[:,idx] = np.linalg.norm(f[feature][:])
         else:
-            data[:,idx] = f[feature]
+            data[:,idx] = f[feature][:]
 
     return data,target, len(features)-1
 
