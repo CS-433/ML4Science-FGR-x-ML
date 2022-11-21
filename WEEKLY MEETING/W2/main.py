@@ -4,6 +4,7 @@ import torch
 import torch.nn as nn
 from torch import optim
 from torch.utils.data import DataLoader
+from torch.utils.data import Dataset
 from sklearn import train_test_split
 from sklearn import preprocessing
 from helpers import *
@@ -11,14 +12,16 @@ from neural_network import *
 import gc
 from torch.optim.lr_scheduler import ReduceLROnPlateau
 
-# Defining activation function to use
-activation = 'sigmoid'
-# Define path for data and useful variable
+##### GLOBAL ENVIRONMENT #####
+
+# Define path for data and useful variables
 name_file = ...
 path = './outputs_test'+ name_file
 batch_size = 128
 lr = 0.1
+activation = 'sigmoid'
 
+# Defining useful class to convert data in a format accepted by Pytorch
 class Customized_dataset(Dataset):
 
     def __init__(self,X,target):
@@ -33,6 +36,7 @@ class Customized_dataset(Dataset):
 
         return self.X[idx,:], self.target[idx]
 
+##### MAIN SCRIPT TO RUN #####
 if __name__ == '__main__':
 
     gc.collect()
@@ -40,17 +44,19 @@ if __name__ == '__main__':
     # Loading dataset
     X, y, dim_feat = get_single_dataset(path)
 
-    # COnverting data to pytorch dataset object
+    # Splitting data into train and test set
     X_train,X_test,y_train,y_test = train_test_split(X,y, test_size = 0.2, random_state = 2022)
 
     # Processing target data depending on activation function
     if activation == 'sigmoid':
         y_train = min_max_scaling(y_train)
         y_test = min_max_scaling(y_test)
-
+    
+    # Converting data into pytorch dataset object
     train_dataset = Customized_dataset(X_train,y_train)
     test_dataset = Customized_dataset(X_test,y_test)
 
+    # Divide train and test data into iterable batches
     train_loader = DataLoader(dataset=train_dataset,batch_size=batch_size, shuffle=True,
                                 num_workers=2, pin_memory=torch.cuda.is_available())
 
@@ -62,9 +68,8 @@ if __name__ == '__main__':
 
     gc.collect()
 
-    # Importing model and shift it on GPU (if available)
+    # Importing model and move it on GPU (if available)
     model = my_FNN_increasing(dim_feat)
-
     if(torch.cuda.is_available()): # for the case of laptop with local GPU
         model = model.cuda() 
 
@@ -85,7 +90,7 @@ if __name__ == '__main__':
     #Defining useful variables for epochs
     loss_epoch_train = [] # will contain all the train losses of the different epochs
     loss_epoch_test = [] # will contain all the test losses of the different epochs
-    lr_history = []
+    lr_history = [] #will contain lr after each epoch
 
     # Moving model to GPU if possibled
     if torch.cuda.is_available():
@@ -100,34 +105,43 @@ if __name__ == '__main__':
         loss_train_vector = [] #vector of losses for a single epoch
 
         for batch_idx, (data,target) in enumerate(train_loader):
+            # Setting the gradient attribute of each weight to zero
             optimizer.zero_grad()
+            # Computing the forward pass
             output = model(data)
+            # Computing the loss
             loss = criterion(output,target).item()
             loss_train_vector.append(loss)
+            # Computing the gradient w.r.t. model parameters
             loss.backward()
+            # Adjusting the weights using SGD
             optimizer.step()
 
-        scheduler.step(np.mean(loss_train_vector)) # scheduler step
+        # Comparing the loss of the epoch with the previous ones to check whether to change the learning rate or not
+        scheduler.step(np.mean(loss_train_vector)) 
+        # Saving the learning rate in the apposite vector
         lr_history.append(scheduler.get_last_lr()[0])
+        # Saving the train loss of the current epoch for later plot
         loss_epoch_train.append(np.mean(loss_train_vector))
 
         ##### TEST #####
 
-        # evaluate model:
         model.eval() 
 
         loss_test_vector = [] #vector of losses for a single epoch
-        lr_history=[]
 
         for batch_idx, (data,target,y_test) in enumerate(test_loader):
+            # Using torch.no_grad() to not save the operation in the computation graph
             with torch.no_grad():
                 pred = model(data)
-
+            # Computing test loss. Since pred.require_grad = False, the following operation is not added to the computation graph
             loss = criterion(pred,y_test).item()
             loss_test_vector.append(loss)
         
+        # Saving the test loss of the current epoch for later plot
         loss_epoch_test.append(np.mean(loss_test_vector))
     
+    # Visualizing loss values against the number of epoch
     visualize_LvsN(loss_epoch_test, loss_epoch_train)
 
 
