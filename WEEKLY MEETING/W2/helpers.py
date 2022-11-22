@@ -64,6 +64,7 @@ def visualize_LvsN(losses_test, losses_train):
     plt.xlabel('epochs')
     plt.ylabel('loss(MSE)')
     plt.legend()
+    plt.show()
 
 
 

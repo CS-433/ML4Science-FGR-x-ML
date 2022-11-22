@@ -43,7 +43,7 @@ class my_FNN_mirror(nn.Module):
     " Class to define the second architecture"
 
     def __init__(self,num_feature,dtype):
-        # IMporting methods and attributes from Module
+        # Importing methods and attributes from Module
         super().__init__()
         # Generating and initializing each layer
         self.l1 = nn.Linear(num_feature,64,dtype=dtype)

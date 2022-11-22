@@ -97,7 +97,6 @@ if __name__ == '__main__':
     #Defining useful variables for epochs
     loss_epoch_train = [] # will contain all the train losses of the different epochs
     loss_epoch_test = [] # will contain all the test losses of the different epochs
-    lr_history = [] #will contain lr after each epoch
 
     for epoch in range(epochs):
         
@@ -116,7 +115,7 @@ if __name__ == '__main__':
             # Computing the forward pass
             output = model(data)
             # Computing the loss
-            loss = criterion(output,target)
+            loss = criterion(torch.flatten(output),target)
             # Computing the gradient w.r.t. model parameters
             loss.backward()
             # Adjusting the weights using SGD
@@ -126,10 +125,8 @@ if __name__ == '__main__':
 
         # Comparing the loss of the epoch with the previous ones to check whether to change the learning rate or not
         scheduler.step(np.mean(loss_train_vector)) 
-        # Saving the learning rate in the apposite vector
-        lr_history.append(scheduler.get_last_lr()[0])
         # Saving the train loss of the current epoch for later plot
-        loss_epoch_train.append(torch.mean(loss_train_vector))
+        loss_epoch_train.append(np.mean(loss_train_vector))
 
         ##### TEST #####
 
@@ -137,7 +134,7 @@ if __name__ == '__main__':
 
         loss_test_vector = [] #vector of losses for a single epoch
 
-        for batch_idx, (data,target,y_test) in enumerate(test_loader):
+        for batch_idx, (data,target) in enumerate(test_loader):
             # Moving data to the GPU if possible
             if(torch.cuda.is_available()): # for the case of laptop with local GPU
                 data,target = data.cuda(), target.cuda()
@@ -145,7 +142,7 @@ if __name__ == '__main__':
             with torch.no_grad():
                 pred = model(data)
             # Computing test loss. Since pred.require_grad = False, the following operation is not added to the computation graph
-            loss = criterion(pred,y_test).item()
+            loss = criterion(torch.flatten(pred),target).item()
             loss_test_vector.append(loss)
         
         # Saving the test loss of the current epoch for later plot
