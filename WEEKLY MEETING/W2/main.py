@@ -5,7 +5,7 @@ import torch.nn as nn
 from torch import optim
 from torch.utils.data import DataLoader
 from torch.utils.data import Dataset
-from sklearn import train_test_split
+from sklearn.model_selection import train_test_split
 from sklearn import preprocessing
 from helpers import *
 from neural_network import *
@@ -15,8 +15,8 @@ from torch.optim.lr_scheduler import ReduceLROnPlateau
 ##### GLOBAL ENVIRONMENT #####
 
 # Define path for data and useful variables
-name_file = ...
-path = './outputs_test'+ name_file
+name_file = 'LH_0/MHI_LH0_z=0.770.hdf5'
+path = './outputs_test/'+ name_file
 batch_size = 128
 lr = 0.1
 activation = 'sigmoid'
@@ -28,6 +28,7 @@ class Customized_dataset(Dataset):
         super().__init__()
         self.X = torch.tensor(X)
         self.target = torch.tensor(target)
+        self.dtype = self.X.dtype
     
     def __len__(self):
         return self.X.shape[0]
@@ -44,8 +45,12 @@ if __name__ == '__main__':
     # Loading dataset
     X, y, dim_feat = get_single_dataset(path)
 
+    # Line to try
+    X = X[:1000]
+    y = y[:1000]
+
     # Splitting data into train and test set
-    X_train,X_test,y_train,y_test = train_test_split(X,y, test_size = 0.2, random_state = 2022)
+    X_train,X_test,y_train,y_test = train_test_split(X,y, test_size=0.2, random_state=2022)
 
     # Processing target data depending on activation function
     if activation == 'sigmoid':
@@ -61,6 +66,8 @@ if __name__ == '__main__':
                                 num_workers=2, pin_memory=torch.cuda.is_available())
 
     test_loader = DataLoader(dataset=test_dataset,batch_size=batch_size, shuffle=True)
+
+    dtype = train_dataset.dtype
     
     # Cleaning memory
     del train_dataset
@@ -69,9 +76,9 @@ if __name__ == '__main__':
     gc.collect()
 
     # Importing model and move it on GPU (if available)
-    model = my_FNN_increasing(dim_feat)
+    model = my_FNN_increasing(dim_feat,dtype)
     if(torch.cuda.is_available()): # for the case of laptop with local GPU
-        model = model.cuda() 
+        model = model.cuda()
 
     # Defining optimizer
     optimizer = optim.SGD(model.parameters(), lr=lr)
@@ -92,10 +99,6 @@ if __name__ == '__main__':
     loss_epoch_test = [] # will contain all the test losses of the different epochs
     lr_history = [] #will contain lr after each epoch
 
-    # Moving model to GPU if possibled
-    if torch.cuda.is_available():
-                model.cuda()
-
     for epoch in range(epochs):
         
         ##### TRAINING #####
@@ -105,24 +108,28 @@ if __name__ == '__main__':
         loss_train_vector = [] #vector of losses for a single epoch
 
         for batch_idx, (data,target) in enumerate(train_loader):
+            # Moving data to the GPU if possible
+            if(torch.cuda.is_available()): # for the case of laptop with local GPU
+                data,target = data.cuda(), target.cuda()
             # Setting the gradient attribute of each weight to zero
             optimizer.zero_grad()
             # Computing the forward pass
             output = model(data)
             # Computing the loss
-            loss = criterion(output,target).item()
-            loss_train_vector.append(loss)
+            loss = criterion(output,target)
             # Computing the gradient w.r.t. model parameters
             loss.backward()
             # Adjusting the weights using SGD
             optimizer.step()
+            # Saving the loss in the corresponding vector
+            loss_train_vector.append(loss.item())
 
         # Comparing the loss of the epoch with the previous ones to check whether to change the learning rate or not
         scheduler.step(np.mean(loss_train_vector)) 
         # Saving the learning rate in the apposite vector
         lr_history.append(scheduler.get_last_lr()[0])
         # Saving the train loss of the current epoch for later plot
-        loss_epoch_train.append(np.mean(loss_train_vector))
+        loss_epoch_train.append(torch.mean(loss_train_vector))
 
         ##### TEST #####
 
@@ -131,6 +138,9 @@ if __name__ == '__main__':
         loss_test_vector = [] #vector of losses for a single epoch
 
         for batch_idx, (data,target,y_test) in enumerate(test_loader):
+            # Moving data to the GPU if possible
+            if(torch.cuda.is_available()): # for the case of laptop with local GPU
+                data,target = data.cuda(), target.cuda()
             # Using torch.no_grad() to not save the operation in the computation graph
             with torch.no_grad():
                 pred = model(data)

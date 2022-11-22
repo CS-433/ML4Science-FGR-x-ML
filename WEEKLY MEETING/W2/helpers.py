@@ -33,7 +33,7 @@ def get_single_dataset(path, features = ['MassHalo','Nsubs','MassBH','dotMassBH'
         else:
             data[:,idx] = f[feature][:]
 
-    return data,target, len(features)-1
+    return data, target, data.shape[1]
 
 
 def min_max_scaling(x):
@@ -46,7 +46,7 @@ def min_max_scaling(x):
     Returns:
         x: array of shape (N,) containing the rescaled values
      """
-    return (x-np.min(x))/(np.max(x)-np-min(x))
+    return (x-np.min(x))/(np.max(x)-np.min(x))
 
 
 def visualize_LvsN(losses_test, losses_train):
