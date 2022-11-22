@@ -66,6 +66,13 @@ def visualize_LvsN(losses_test, losses_train):
     plt.legend()
     plt.show()
 
+def correlation_plot(predicted, y):
+    fig, ax = plt.subplots(figsize=(12, 8))
+    ax.scatter(y, predicted, edgecolors=(0, 0, 0))
+    ax.plot([min(y), max(y)], [min(y), max(y)], 'r--', lw=4)
+    ax.set_xlabel('Original')
+    ax.set_ylabel('Predicted')
+
 
 
 
