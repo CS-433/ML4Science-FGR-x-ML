@@ -5,7 +5,7 @@ import torch.nn as nn
 import numpy as np
 import h5py
 from torch.utils.data import Dataset
-import matplotlib as plt
+import matplotlib.pyplot as plt
 
 
 def get_single_dataset(path, features = ['MassHalo','Nsubs','MassBH','dotMassBH','SFR','M_HI']):
@@ -57,14 +57,14 @@ def visualize_LvsN(losses_test, losses_train):
         losses_test: array of shape (num_epochs,) containing test error
         losses_train: array of shape (num_epochs,) containing train error
     """
-    plt.figure(figsize=(7,9))
-    plt.plot(range(1,len(losses_test)+1), losses_test, 'ro-', label='Loss(MSE) test')
-    plt.plot(range(1,len(losses_train)+1), losses_train, 'ro-', label='Loss(MSE) test')
-    plt.title('MSE w.r.t. number of epochs')
-    plt.xlabel('epochs')
-    plt.ylabel('loss(MSE)')
+    fig,axs = plt.subplots(1,2, figsize=(15,10))
+    axs[1].plot(range(1,len(losses_test)+1), losses_test, 'ro-', label='Loss(MSE) test')
+    axs[1].set(title='MSE w.r.t. number of epochs',xlabel='epochs',ylabel='test_loss(MSE)')
+    plt.grid()
+    axs[0].plot(range(1,len(losses_train)+1), losses_train, 'bo-', label='Loss(MSE) train')
+    axs[0].set(title='MSE w.r.t. number of epochs',xlabel='epochs',ylabel='train_loss(MSE)')
+    plt.grid()
     plt.legend()
-    plt.show()
 
 def correlation_plot(predicted, y):
     fig, ax = plt.subplots(figsize=(12, 8))

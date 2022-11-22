@@ -5,6 +5,7 @@ import torch.nn as nn
 from torch import optim
 from torch.utils.data import DataLoader
 from torch.utils.data import Dataset
+import matplotlib.pyplot as plt
 from sklearn.model_selection import train_test_split
 from sklearn import preprocessing
 from helpers import *
@@ -17,13 +18,6 @@ import params
 import pickle
 
 ##### GLOBAL ENVIRONMENT #####
-
-# Define path for data and useful variables
-name_file = 'LH_0/MHI_LH0_z=0.770.hdf5'
-path_file = './outputs_test/'+ name_file
-batch_size = 128
-lr = 0.1
-activation = 'sigmoid'
 
 # Defining useful class to convert data in a format accepted by Pytorch
 class Customized_dataset(Dataset):
@@ -69,9 +63,8 @@ if __name__ == '__main__':
     train_loader = DataLoader(dataset=train_dataset,batch_size=params.batch_size, shuffle=True,
                                 num_workers=2, pin_memory=torch.cuda.is_available())
 
-    test_loader = DataLoader(dataset=test_dataset,batch_size=params.batch_size, shuffle=True)
-
-    dtype = train_dataset.dtype
+    test_loader = DataLoader(dataset=test_dataset,batch_size=params.batch_size, shuffle=True,
+                                pin_memory=torch.cuda.is_available())
     
     # Cleaning memory
     del train_dataset
@@ -80,10 +73,17 @@ if __name__ == '__main__':
     gc.collect()
 
 #-----------------------------------------------------------------------------------------------
+    
     # Defining num_epochs
     epochs = params.epochs
 
-    # case of the first run
+    #Defining loss function and shift it on GPU (if available)
+    criterion = nn.MSELoss()
+
+    if torch.cuda.is_available():
+        criterion.cuda()
+
+    # First run case
     if (params.first_run == True):
         
         # creation of the folder "checkpoints"
@@ -94,12 +94,14 @@ if __name__ == '__main__':
         #Defining useful variables for epochs
         loss_epoch_train = [] # will contain all the train losses of the different epochs
         loss_epoch_test = [] # will contain all the test losses of the different epochs
+
+        # Initializing number epoch and loss
         final_epoch=epochs
-        prev_loss=10**5
+        prev_loss=torch.inf
         current_epoch=0
 
         # Importing model and move it on GPU (if available)
-        model = my_FNN_increasing(dim_feat,dtype)
+        model = my_FNN_increasing(dim_feat,params.dtype)
         if(torch.cuda.is_available()): # for the case of laptop with local GPU
             model = model.cuda()
 
@@ -109,17 +111,12 @@ if __name__ == '__main__':
         # Defining a scheduler to adjust the learning rate
         scheduler = ReduceLROnPlateau(optimizer = optimizer, mode = 'min', factor = 0.1, patience = 20, min_lr=1e-12, verbose=True)
 
-        #Defining loss function and shift it on GPU (if available)
-        criterion = nn.MSELoss()
-
-        if torch.cuda.is_available():
-            criterion.cuda()
-
     else:
-    # if it's not the first run, resume the training from last_model
+
+        # Resuming the training from last_model
         PATH = './checkpoints/last_model.pt'
 
-        model = my_FNN_increasing(dim_feat,dtype)
+        model = my_FNN_increasing(dim_feat,params.dtype)
 
         # Defining optimizer
         optimizer = optim.SGD(model.parameters(), lr=params.lr)
@@ -127,32 +124,37 @@ if __name__ == '__main__':
         # Defining a scheduler to adjust the learning rate
         scheduler = ReduceLROnPlateau(optimizer = optimizer, mode = 'min', factor = 0.1, patience = 20, min_lr=1e-12, verbose=True)
 
-        #Defining loss function and shift it on GPU (if available)
-        criterion = nn.MSELoss()
-
-        if torch.cuda.is_available():
-            criterion.cuda() 
-
         checkpoint = torch.load(PATH)
+
+        # Importing final state of the model from previous run
         model.load_state_dict(checkpoint['model_state'])
 
         if(torch.cuda.is_available()): # for the case of laptop with local GPU
             model = model.cuda()
 
+        # Importing final state of the optimizer from previous run
         optimizer.load_state_dict(checkpoint['optimizer_state'])
+
+        # Importing final state of the scheduler from previous run. By doing so, we keep trace of previous learning rates.
         scheduler.load_state_dict(checkpoint['scheduler_state'])
+
+        # Defining current epoch
         current_epoch = checkpoint['epoch'] + 1   # since we save the last epoch done, we have to start from the correct one
-        prev_loss = checkpoint['loss']
+
+        # Resuming previous loss
+        prev_loss = checkpoint['prev_loss']
+
         final_epoch = current_epoch + epochs # updating the number of the final epoch
     
-        train_losses = pickle.load(open("./checkpoints/loss_train.txt", "rb"))  # to load the vector of train losses
-        test_losses = pickle.load(open("./checkpoints/loss_test.txt", "rb"))    # to load the vector of test losses
-        all_test_losses = test_losses["test_loss"]
-        all_train_losses = train_losses["train_loss"]
+        # Resuming loss vectors defined before
+        loss_epoch_train = pickle.load(open("./checkpoints/loss_train.txt", "rb"))  # to load the vector of train losses
+        loss_epoch_train = loss_epoch_train['train_loss']
+        loss_epoch_test = pickle.load(open("./checkpoints/loss_test.txt", "rb"))    # to load the vector of test losses
+        loss_epoch_test = loss_epoch_test['test_loss']
 
 #-----------------------------------------------------------------------------------------------------------------------------------
     
-    for epoch in range((current_epoch, final_epoch)):
+    for epoch in range(current_epoch, final_epoch):
         
         ##### TRAINING #####
 
@@ -183,6 +185,7 @@ if __name__ == '__main__':
         # Saving the train loss of the current epoch for later plot
         loss_epoch_train.append(loss_train)
 
+        # Saving the loss in an apposite file
         pickle.dump({"train_loss": loss_epoch_train}, open("./checkpoints/loss_train.txt", "wb")) # it overwrites the previous file
 
         ##### TEST #####
@@ -202,39 +205,43 @@ if __name__ == '__main__':
             loss = criterion(torch.flatten(pred),target).item()
             loss_test_vector.append(loss)
 
-            correlation_plot(pred.cpu().detach().numpy(), target.cpu().detach().numpy())
+        # correlation_plot(pred.cpu().detach().numpy(), target.cpu().detach().numpy())
 
-        plt.savefig('./checkpoints/correlation_plot_%d.png' %(epoch+1), bbox_inches='tight') # saving correlation plot
-        plt.clf() # to clear the current figure
+        #plt.savefig('./checkpoints/correlation_plot_%d.png' %(epoch+1), bbox_inches='tight') # saving correlation plot
+        #plt.clf() # to clear the current figure
+
         # Saving the test loss of the current epoch for later plot
         loss_test = np.mean(loss_test_vector)
         loss_epoch_test.append(loss_test)
     
         # Visualizing loss values against the number of epoch
-        visualize_LvsN(loss_epoch_test, loss_epoch_train)
-        plt.savefig('./checkpoints/LvsN_visualization_plot_%d.png' %(epoch+1), bbox_inches='tight') # saving LvsN plot
-        plt.clf() # to clear the current figure
+        if epoch%5 == 0 and epoch != 0:
+            visualize_LvsN(loss_epoch_test, loss_epoch_train)
+            plt.savefig('./checkpoints/LvsN_visualization_plot_%d.png' %(epoch+1), bbox_inches='tight') # saving LvsN plot
 
-        pickle.dump({"test_loss": all_test_losses}, open("./checkpoints/loss_test.txt", "wb")) # it overwrites the previous file
+        # Saving the loss in an apposite file
+        pickle.dump({"test_loss": loss_epoch_test}, open("./checkpoints/loss_test.txt", "wb")) # it overwrites the previous file
 
+        # If we get a better model, save it. Therefore this file will contain the best model so far
         if (loss_test < prev_loss): # if our current model is better, update the best model saving the net state, loss value and R2 score
             prev_loss = loss_test
-            PATH = './checkpoints/model_%d.pt' % epoch
+            PATH = './checkpoints/best_model_%d.pt' % epoch
             torch.save({'epoch': epoch,
                         'model_state': model.state_dict(),
                         'optimizer_state': optimizer.state_dict(),
                         'scheduler_state': scheduler.state_dict(),
-                        'loss': prev_loss}, PATH)
-        print('Epoch %d: loss=%.4f, val_loss=%.4f, R2=%.4f, val_R2=%.4f' %(epoch+1, loss_train, loss_test ))
+                        'best_loss': prev_loss}, PATH)
+
+        print('Epoch %d: train_loss=%.4f, validation_loss=%.4f' %(epoch+1, loss_train, loss_test))
 
 
-        # saving the last model used (to be sure, we save it each epoch)
+        # Saving the last model used at evey epoch
         PATH = './checkpoints/last_model.pt'
         torch.save({'epoch': epoch,
                     'model_state': model.state_dict(),
                     'optimizer_state': optimizer.state_dict(),
                     'scheduler_state': scheduler.state_dict(),
-                    'loss': prev_loss}, PATH)
+                    'prev_loss': prev_loss}, PATH)
 
 
 
