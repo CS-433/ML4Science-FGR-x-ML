@@ -48,16 +48,20 @@ if __name__ == '__main__':
     #y = y[:1000]
 
     # Splitting data into train and test set
-    X_train,X_test,y_train,y_test = train_test_split(X,y, test_size=0.2, random_state=2022)
+    X_train,X_test,y_train,y_test = train_test_split(X, y, test_size=0.2, random_state=2022)
+
+    X_test,X_val,y_test,y_val = train_test_split(X, y, test_size=0.2, random_state=2022)
 
     # Processing target data depending on activation function
     if params.activation == 'sigmoid':
         y_train = min_max_scaling(y_train)
         y_test = min_max_scaling(y_test)
+        y_val = min_max_scaling(y_val)
     
     # Converting data into pytorch dataset object
     train_dataset = Customized_dataset(X_train,y_train)
     test_dataset = Customized_dataset(X_test,y_test)
+    val_dataset = Customized_dataset(X_val,y_val)
 
     # Divide train and test data into iterable batches
     train_loader = DataLoader(dataset=train_dataset,batch_size=params.batch_size, shuffle=True,
@@ -66,9 +70,13 @@ if __name__ == '__main__':
     test_loader = DataLoader(dataset=test_dataset,batch_size=params.batch_size, shuffle=True,
                                 pin_memory=torch.cuda.is_available())
     
+    val_loader = DataLoader(dataset=val_dataset,batch_size=params.batch_size, shuffle=True,
+                                pin_memory=torch.cuda.is_available())
+    
     # Cleaning memory
     del train_dataset
     del test_dataset
+    del val_dataset
 
     gc.collect()
 
@@ -186,7 +194,7 @@ if __name__ == '__main__':
             optimizer.step()
             # Saving the loss in the corresponding vector
             loss_train_vector.append(loss.item())
-            R2 = r2_score(target.cpu().detach().numpy(), pred.cpu().detach().numpy()) # computing R2 score
+            R2 = r2_score(target.cpu().detach().numpy(), output.cpu().detach().numpy()) # computing R2 score
             R2_train.append(R2) # storing R2 score
 
         loss_train = np.mean(loss_train_vector)
