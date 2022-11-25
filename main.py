@@ -1,4 +1,3 @@
-
 import numpy as np
 import torch
 import torch.nn as nn
@@ -15,6 +14,7 @@ from torch.optim.lr_scheduler import ReduceLROnPlateau
 from os import makedirs
 from shutil import rmtree
 import params
+from sklearn.metrics import r2_score
 import pickle
 
 ##### GLOBAL ENVIRONMENT #####
@@ -94,7 +94,9 @@ if __name__ == '__main__':
         #Defining useful variables for epochs
         loss_epoch_train = [] # will contain all the train losses of the different epochs
         loss_epoch_test = [] # will contain all the test losses of the different epochs
-
+        R2_epoch_test = []
+        R2_epoch_train = []
+        
         # Initializing number epoch and loss
         final_epoch=epochs
         prev_loss=torch.inf
@@ -152,6 +154,11 @@ if __name__ == '__main__':
         loss_epoch_test = pickle.load(open("./checkpoints/loss_test.txt", "rb"))    # to load the vector of test losses
         loss_epoch_test = loss_epoch_test['test_loss']
 
+        # Resuming R2 vectors defined before
+        R2_train = pickle.load(open("./checkpoints/R2_train.txt","rb")) # to load the vector of train R2s
+        R2_test = pickle.load(open("./checkpoints/R2_test.txt", "rb")) # to load the vector of test R2s
+        R2_epoch_train = R2_train['R2_train']
+        R2_epoch_test = R2_test['R2_test']
 #-----------------------------------------------------------------------------------------------------------------------------------
     
     for epoch in range(current_epoch, final_epoch):
@@ -161,6 +168,7 @@ if __name__ == '__main__':
         model.train() # useless since we are not using dropout and batch normalization
 
         loss_train_vector = [] #vector of losses for a single epoch
+        R2_train = []
 
         for batch_idx, (data,target) in enumerate(train_loader):
             # Moving data to the GPU if possible
@@ -178,6 +186,8 @@ if __name__ == '__main__':
             optimizer.step()
             # Saving the loss in the corresponding vector
             loss_train_vector.append(loss.item())
+            R2 = r2_score(target.cpu().detach().numpy(), pred.cpu().detach().numpy()) # computing R2 score
+            R2_train.append(R2) # storing R2 score
 
         loss_train = np.mean(loss_train_vector)
         # Comparing the loss of the epoch with the previous ones to check whether to change the learning rate or not
@@ -185,16 +195,22 @@ if __name__ == '__main__':
         # Saving the train loss of the current epoch for later plot
         loss_epoch_train.append(loss_train)
 
+        R2_train = np.mean(R2_train)
+        R2_epoch_train.append(R2_train)
+        
         # Saving the loss in an apposite file
         pickle.dump({"train_loss": loss_epoch_train}, open("./checkpoints/loss_train.txt", "wb")) # it overwrites the previous file
+        pickle.dump({"R2_train": R2_epoch_train}, open("./checkpoints/R2_train.txt", "wb"))  # it overwrites the previous file
 
         ##### TEST #####
 
         model.eval() 
 
         loss_test_vector = [] #vector of losses for a single epoch
+        R2_test = []
 
         for batch_idx, (data,target) in enumerate(test_loader):
+            
             # Moving data to the GPU if possible
             if(torch.cuda.is_available()): # for the case of laptop with local GPU
                 data,target = data.cuda(), target.cuda()
@@ -204,6 +220,8 @@ if __name__ == '__main__':
             # Computing test loss. Since pred.require_grad = False, the following operation is not added to the computation graph
             loss = criterion(torch.flatten(pred),target).item()
             loss_test_vector.append(loss)
+            R2 = r2_score(target.cpu().detach().numpy(), pred.cpu().detach().numpy()) # computing R2 score
+            R2_test.append(R2) # storing R2 score
 
         # correlation_plot(pred.cpu().detach().numpy(), target.cpu().detach().numpy())
 
@@ -213,15 +231,20 @@ if __name__ == '__main__':
         # Saving the test loss of the current epoch for later plot
         loss_test = np.mean(loss_test_vector)
         loss_epoch_test.append(loss_test)
-    
+
+        R2_test = np.mean(R2_test)
+        R2_epoch_test.append(R2_test)
+
         # Visualizing loss values against the number of epoch
         if (epoch+1)%20 == 0 and epoch != 0:
-            visualize_LvsN(loss_epoch_test, loss_epoch_train)
-            plt.savefig('./checkpoints/LvsN_visualization_plot_%d.png' %(epoch+1), bbox_inches='tight') # saving LvsN plot
+            visualization(loss_epoch_test, loss_epoch_train, R2_epoch_train, R2_epoch_test)
+            plt.savefig('./checkpoints/visualization_plot_%d.png' %(epoch+1), bbox_inches='tight') # saving plot
 
-        # Saving the loss in an apposite file
+        # Saving the loss and the R2 score in an apposite file
         pickle.dump({"test_loss": loss_epoch_test}, open("./checkpoints/loss_test.txt", "wb")) # it overwrites the previous file
+        pickle.dump({"R2_test": R2_epoch_test}, open("./checkpoints/R2_test.txt", "wb"))  # it overwrites the previous file
 
+        
         # If we get a better model, save it. Therefore this file will contain the best model so far
         if (loss_test < prev_loss): # if our current model is better, update the best model saving the net state, loss value and R2 score
             prev_loss = loss_test

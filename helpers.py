@@ -49,7 +49,7 @@ def min_max_scaling(x):
     return (x-np.min(x))/(np.max(x)-np.min(x))
 
 
-def visualize_LvsN(losses_test, losses_train):
+def visualization(losses_test, losses_train, R2_train, R2_test):
     """
     Visualization of loss of test (y axis) versus number of epoch that refer to that loss (x axis)
 
@@ -59,11 +59,15 @@ def visualize_LvsN(losses_test, losses_train):
     """
     fig,axs = plt.subplots(1,2, figsize=(15,10))
     axs[0].plot(range(1,len(losses_train)+1), losses_train, 'bo-', label='Loss(MSE) train')
-    axs[0].set(title='MSE w.r.t. number of epochs',xlabel='epochs',ylabel='train_loss(MSE)')
+    axs[0].plot(range(1,len(losses_test)+1), losses_test, 'ro-', label='Loss(MSE) test')
+    axs[0].set(title='MSE w.r.t. number of epochs',xlabel='epochs',ylabel='test_loss(MSE)')
     axs[0].grid(visible=True)
+    axs[0].set_yscale('log')
     axs[0].legend()
-    axs[1].plot(range(1,len(losses_test)+1), losses_test, 'ro-', label='Loss(MSE) test')
-    axs[1].set(title='MSE w.r.t. number of epochs',xlabel='epochs',ylabel='test_loss(MSE)')
+
+    axs[1].plot(range(1,len(R2_train)+1), R2_train, 'bo-', label='R2 score train')
+    axs[1].plot(range(1,len(R2_test)+1), R2_test, 'ro-', label='R2 score test')
+    axs[1].set(title='R2 score w.r.t. number of epochs',xlabel='epochs',ylabel='R2 score')
     axs[1].grid(visible=True)
     axs[1].legend()
 
