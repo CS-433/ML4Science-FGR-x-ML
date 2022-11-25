@@ -231,10 +231,6 @@ if __name__ == '__main__':
             R2 = r2_score(target.cpu().detach().numpy(), pred.cpu().detach().numpy()) # computing R2 score
             R2_test.append(R2) # storing R2 score
 
-        # correlation_plot(pred.cpu().detach().numpy(), target.cpu().detach().numpy())
-
-        #plt.savefig('./checkpoints/correlation_plot_%d.png' %(epoch+1), bbox_inches='tight') # saving correlation plot
-        #plt.clf() # to clear the current figure
 
         # Saving the test loss of the current epoch for later plot
         loss_test = np.mean(loss_test_vector)
@@ -244,7 +240,7 @@ if __name__ == '__main__':
         R2_epoch_test.append(R2_test)
 
         # Visualizing loss values against the number of epoch
-        if (epoch+1)%20 == 0 and epoch != 0:
+        if (epoch+1)%5 == 0 and epoch != 0:
             visualization(loss_epoch_test, loss_epoch_train, R2_epoch_train, R2_epoch_test)
             plt.savefig('./checkpoints/visualization_plot_%d.png' %(epoch+1), bbox_inches='tight') # saving plot
 
@@ -265,6 +261,9 @@ if __name__ == '__main__':
 
         print('Epoch %d: train_loss=%.4f, validation_loss=%.4f' %(epoch+1, loss_train, loss_test))
 
+        # plt.clf() # to clear the current figure
+        # correlation_plot(pred_val.cpu().detach().numpy(), y_val.cpu().detach().numpy())
+        # plt.savefig('./checkpoints/correlation_plot_%d.png' %(epoch+1), bbox_inches='tight') # saving correlation plot
 
         # Saving the last model used at evey epoch
         PATH = './checkpoints/last_model.pt'
