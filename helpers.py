@@ -19,26 +19,45 @@ def get_single_dataset(path, features = ['MassHalo','Nsubs','MassBH','dotMassBH'
     Returns:
         data: array of shape (N,len(features)-1)
         target: array of shape (N,) containing the true output value of each observation
+        shape : scalar corresponding to the number of features
      """
     f = h5py.File(path)
 
-    target = f['M_HI'][:]
+    # Creating mask
 
-    data = np.empty((target.shape[0], len(features) -1) )
+    mass_BH = f['MassBH'][:]
+    dot_massBH = f['dotMassBH'][:]
+    sfr = f['SFR'][:]
 
-    for idx,feature in enumerate(features[:-1]):
+    mask = (mass_BH != 0) & (dot_massBH !=0) & (sfr !=0)
 
-        if feature == 'VelHalo':
-            data[:,idx] = np.linalg.norm(f[feature][:])
-        else:
-            data[:,idx] = f[feature][:]
+    # Creating structure
+
+    data = np.empty((np.sum(mask), len(features) -1) )
+
+    # Initializing structure
+
+    data[:,0] = f['MassHalo'][mask]  #/ (10**10)
+    #data[:,0] = np.log10(data[:,0])
+    data[:,1] = f['Nsubs'][mask]
+    data[:,2] = f['MassBH'][mask] # / (10**10)
+    #data[:,2] = np.log10(data[:,2])
+    data[:,3] = f['dotMassBH'][mask] # * 0.978 / (10**10)
+    #data[:,3] = np.log10(data[:,3])
+    data[:,4] = f['SFR'][mask]
+
+    #target = np.log10(f['M_HI'][mask]/1e10)
+
+    data = (data - data.mean()) / data.std()
+    target = f['M_HI'][mask]
+    target = (target - target.min()) / (target.max() - target.min())
 
     return data, target, data.shape[1]
 
 
-def min_max_scaling(x):
+def scaling(x):
     """
-    Function to compute minmax rescaling on a 1 dimensional numpy array.
+    Function to compute rescaling on a 1 dimensional numpy array.
     
     Args:
         x: array of shape (N,)
@@ -46,7 +65,8 @@ def min_max_scaling(x):
     Returns:
         x: array of shape (N,) containing the rescaled values
      """
-    return (x-np.min(x))/(np.max(x)-np.min(x))
+
+    return x/ (10**10)
 
 
 def visualization(losses_test, losses_train, R2_train, R2_test):
@@ -69,6 +89,7 @@ def visualization(losses_test, losses_train, R2_train, R2_test):
     axs[1].plot(range(1,len(R2_test)+1), R2_test, 'ro-', label='R2 score test')
     axs[1].set(title='R2 score w.r.t. number of epochs',xlabel='epochs',ylabel='R2 score')
     axs[1].grid(visible=True)
+    axs[1].set(ylim = [-1,1])
     axs[1].legend()
 
 def correlation_plot(predicted, y):

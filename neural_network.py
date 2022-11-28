@@ -15,12 +15,10 @@ class my_FNN_increasing(nn.Module):
         super().__init__()
         # Generating and initializing each layer
         self.l1 = nn.Linear(num_feature,64,dtype=dtype)
-        self.l2 = nn.Sigmoid()
-        self.l3 = nn.Linear(64,128,dtype=dtype)
-        self.l4 = nn.Sigmoid()
-        self.l5 = nn.Linear(128,256,dtype=dtype)
-        self.l6 = nn.Sigmoid()
-        self.l7 = nn.Linear(256,1,dtype=dtype)
+        self.l2 = nn.Linear(64,128,dtype=dtype)
+        self.l3 = nn.Linear(128,256,dtype=dtype)
+        self.l4 = nn.Linear(256,1,dtype=dtype)
+        self.l5 = nn.Sigmoid()
 
     def forward(self,input):
 
@@ -31,9 +29,7 @@ class my_FNN_increasing(nn.Module):
         out = self.l3(out)
         out = self.l4(out)
         out = self.l5(out)
-        out = self.l6(out)
-        out = self.l7(out)
-
+        
         return out
 
 ##### SECOND ARCHITECTURE #####
@@ -47,12 +43,9 @@ class my_FNN_mirror(nn.Module):
         super().__init__()
         # Generating and initializing each layer
         self.l1 = nn.Linear(num_feature,64,dtype=dtype)
-        self.l2 = nn.Sigmoid()
-        self.l3 = nn.Linear(64,128,dtype=dtype)
-        self.l4 = nn.Sigmoid()
-        self.l5 = nn.Linear(128,64,dtype=dtype)
-        self.l6 = nn.Sigmoid()
-        self.l7 = nn.Linear(64,1,dtype=dtype)
+        self.l2 = nn.Linear(64,128,dtype=dtype)
+        self.l3 = nn.Linear(128,64,dtype=dtype)
+        self.l4 = nn.Linear(64,1,dtype=dtype)
 
     def forward(self,input):
 
@@ -62,9 +55,6 @@ class my_FNN_mirror(nn.Module):
         out = self.l2(out)
         out = self.l3(out)
         out = self.l4(out)
-        out = self.l5(out)
-        out = self.l6(out)
-        out = self.l7(out)
 
         return out
 

@@ -43,21 +43,11 @@ if __name__ == '__main__':
     # Loading dataset
     X, y, dim_feat = get_single_dataset(params.path_file)
 
-    # Line to try
-    #X = X[:1000]
-    #y = y[:1000]
-
     # Splitting data into train and test set
     X_train,X_test,y_train,y_test = train_test_split(X, y, test_size=0.2, random_state=2022)
 
     X_test,X_val,y_test,y_val = train_test_split(X, y, test_size=0.2, random_state=2022)
 
-    # Processing target data depending on activation function
-    if params.activation == 'sigmoid':
-        y_train = min_max_scaling(y_train)
-        y_test = min_max_scaling(y_test)
-        y_val = min_max_scaling(y_val)
-    
     # Converting data into pytorch dataset object
     train_dataset = Customized_dataset(X_train,y_train)
     test_dataset = Customized_dataset(X_test,y_test)
@@ -194,7 +184,16 @@ if __name__ == '__main__':
             optimizer.step()
             # Saving the loss in the corresponding vector
             loss_train_vector.append(loss.item())
-            R2 = r2_score(target.cpu().detach().numpy(), output.cpu().detach().numpy()) # computing R2 score
+            output_numpy = output.cpu().detach().numpy().squeeze()
+            target_numpy = target.cpu().detach().numpy()
+            #print(output_numpy.shape, output_numpy.max(), output_numpy.min())
+            #print(target_numpy.shape, target_numpy.max(), target_numpy.min())
+
+            #print(output_numpy)
+            #print(target_numpy)
+            R2 = r2_score(target_numpy, output_numpy) # computing R2 score
+            #print(loss, R2)
+            #print()
             R2_train.append(R2) # storing R2 score
 
         loss_train = np.mean(loss_train_vector)
@@ -209,7 +208,8 @@ if __name__ == '__main__':
         # Saving the loss in an apposite file
         pickle.dump({"train_loss": loss_epoch_train}, open("./checkpoints/loss_train.txt", "wb")) # it overwrites the previous file
         pickle.dump({"R2_train": R2_epoch_train}, open("./checkpoints/R2_train.txt", "wb"))  # it overwrites the previous file
-
+        np.savetxt('R2_trend.txt', np.array(R2_epoch_train))
+        #np.savetxt('R2_train.txt', R2_train)
         ##### TEST #####
 
         model.eval() 
@@ -242,7 +242,7 @@ if __name__ == '__main__':
         # Visualizing loss values against the number of epoch
         if (epoch+1)%5 == 0 and epoch != 0:
             visualization(loss_epoch_test, loss_epoch_train, R2_epoch_train, R2_epoch_test)
-            plt.savefig('./checkpoints/visualization_plot_%d.png' %(epoch+1), bbox_inches='tight') # saving plot
+            plt.savefig('./checkpoints/visualization_plot.png', bbox_inches='tight') # saving plot
 
         # Saving the loss and the R2 score in an apposite file
         pickle.dump({"test_loss": loss_epoch_test}, open("./checkpoints/loss_test.txt", "wb")) # it overwrites the previous file
