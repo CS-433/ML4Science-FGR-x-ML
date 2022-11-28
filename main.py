@@ -41,17 +41,29 @@ if __name__ == '__main__':
     gc.collect()
     
     # Loading dataset
-    X, y, dim_feat = get_single_dataset(params.path_file)
+    #X, y, dim_feat = get_single_dataset(params.path_file)
+    X, y, dim_feat = get_dataset_LH_fixed('./outputs_test/LH_0')
+
+    if params.activation == 'sigmoid':
+        # Computing minmax scaling
+        y = (y - y.min()) / (y.max() - y.min())
 
     # Splitting data into train and test set
-    X_train,X_test,y_train,y_test = train_test_split(X, y, test_size=0.2, random_state=2022)
 
-    X_test,X_val,y_test,y_val = train_test_split(X, y, test_size=0.2, random_state=2022)
+    # 75 % train, 20% test, 5% validation
+    X_train,X_test,y_train,y_test = train_test_split(X, y, test_size=0.25, random_state=2022)
+
+    X_test,X_val,y_test,y_val = train_test_split(X_test, y_test, test_size=0.2, random_state=2022)
 
     # Converting data into pytorch dataset object
     train_dataset = Customized_dataset(X_train,y_train)
     test_dataset = Customized_dataset(X_test,y_test)
-    val_dataset = Customized_dataset(X_val,y_val)
+
+    # Since we do not want to iterate over the validation set, we only convert it to a tensor
+    X_val, y_val = torch.tensor(X_val), torch.tensor(y_val)
+    if torch.cuda.is_available():
+        X_val = X_val.cuda()
+        y_val = y_val.cuda()
 
     # Divide train and test data into iterable batches
     train_loader = DataLoader(dataset=train_dataset,batch_size=params.batch_size, shuffle=True,
@@ -60,13 +72,9 @@ if __name__ == '__main__':
     test_loader = DataLoader(dataset=test_dataset,batch_size=params.batch_size, shuffle=True,
                                 pin_memory=torch.cuda.is_available())
     
-    val_loader = DataLoader(dataset=val_dataset,batch_size=params.batch_size, shuffle=True,
-                                pin_memory=torch.cuda.is_available())
-    
     # Cleaning memory
     del train_dataset
     del test_dataset
-    del val_dataset
 
     gc.collect()
 
@@ -184,16 +192,9 @@ if __name__ == '__main__':
             optimizer.step()
             # Saving the loss in the corresponding vector
             loss_train_vector.append(loss.item())
-            output_numpy = output.cpu().detach().numpy().squeeze()
-            target_numpy = target.cpu().detach().numpy()
-            #print(output_numpy.shape, output_numpy.max(), output_numpy.min())
-            #print(target_numpy.shape, target_numpy.max(), target_numpy.min())
-
-            #print(output_numpy)
-            #print(target_numpy)
-            R2 = r2_score(target_numpy, output_numpy) # computing R2 score
-            #print(loss, R2)
-            #print()
+            # Computing the R2 score
+            R2 = r2_score(target.cpu().detach().numpy(), output.cpu().detach().numpy().squeeze()) # computing R2 score
+            # Appending result
             R2_train.append(R2) # storing R2 score
 
         loss_train = np.mean(loss_train_vector)
@@ -207,9 +208,8 @@ if __name__ == '__main__':
         
         # Saving the loss in an apposite file
         pickle.dump({"train_loss": loss_epoch_train}, open("./checkpoints/loss_train.txt", "wb")) # it overwrites the previous file
-        pickle.dump({"R2_train": R2_epoch_train}, open("./checkpoints/R2_train.txt", "wb"))  # it overwrites the previous file
-        np.savetxt('R2_trend.txt', np.array(R2_epoch_train))
-        #np.savetxt('R2_train.txt', R2_train)
+        np.savetxt('./checkpoints/R2_train.txt', np.array(R2_epoch_train))
+
         ##### TEST #####
 
         model.eval() 
@@ -246,13 +246,12 @@ if __name__ == '__main__':
 
         # Saving the loss and the R2 score in an apposite file
         pickle.dump({"test_loss": loss_epoch_test}, open("./checkpoints/loss_test.txt", "wb")) # it overwrites the previous file
-        pickle.dump({"R2_test": R2_epoch_test}, open("./checkpoints/R2_test.txt", "wb"))  # it overwrites the previous file
-
+        np.savetxt('./checkpoints/R2_test.txt', np.array(R2_epoch_test))
         
         # If we get a better model, save it. Therefore this file will contain the best model so far
         if (loss_test < prev_loss): # if our current model is better, update the best model saving the net state, loss value and R2 score
             prev_loss = loss_test
-            PATH = './checkpoints/best_model_%d.pt' % epoch
+            PATH = './checkpoints/best_model.pt'
             torch.save({'epoch': epoch,
                         'model_state': model.state_dict(),
                         'optimizer_state': optimizer.state_dict(),
@@ -261,10 +260,6 @@ if __name__ == '__main__':
 
         print('Epoch %d: train_loss=%.4f, validation_loss=%.4f' %(epoch+1, loss_train, loss_test))
 
-        # plt.clf() # to clear the current figure
-        # correlation_plot(pred_val.cpu().detach().numpy(), y_val.cpu().detach().numpy())
-        # plt.savefig('./checkpoints/correlation_plot_%d.png' %(epoch+1), bbox_inches='tight') # saving correlation plot
-
         # Saving the last model used at evey epoch
         PATH = './checkpoints/last_model.pt'
         torch.save({'epoch': epoch,
@@ -272,6 +267,30 @@ if __name__ == '__main__':
                     'optimizer_state': optimizer.state_dict(),
                     'scheduler_state': scheduler.state_dict(),
                     'prev_loss': prev_loss}, PATH)
+    
+    ##### VALIDATION #####
+
+    PATH = './checkpoints/best_model.pt'
+
+    best_model = my_FNN_increasing(dim_feat,params.dtype)
+
+    checkpoint = torch.load(PATH)
+
+    # Importing final state of the model from previous run
+    best_model.load_state_dict(checkpoint['model_state'])
+
+    if(torch.cuda.is_available()): # for the case of laptop with local GPU
+        best_model = best_model.cuda()
+
+    # After importing the model, we just need to compute the prediction on validation data
+
+    with torch.no_grad():
+
+        output_validation = best_model(X_val)
+        
+    plt.clf() # to clear the current figure
+    correlation_plot(output_validation.cpu().detach().numpy(), y_val.cpu().detach().numpy())
+    plt.savefig('./checkpoints/correlation_plot.png', bbox_inches='tight') # saving correlation plot
 
 
 

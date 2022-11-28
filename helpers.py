@@ -4,6 +4,7 @@ import torch
 import torch.nn as nn
 import numpy as np
 import h5py
+from os import listdir
 from torch.utils.data import Dataset
 import matplotlib.pyplot as plt
 
@@ -49,11 +50,60 @@ def get_single_dataset(path, features = ['MassHalo','Nsubs','MassBH','dotMassBH'
     #target = np.log10(f['M_HI'][mask]/1e10)
 
     data = (data - data.mean()) / data.std()
+    
     target = f['M_HI'][mask]
-    target = (target - target.min()) / (target.max() - target.min())
 
     return data, target, data.shape[1]
 
+def get_dataset_LH_fixed(folder_path):
+
+    z = [0.77, 0.86, 0.95, 1.05, 1.15, 1.25, 1.36, 1.48, 1.6, 1.73, 1.86, 2, 2.15, 2.3, 2.46, 2.63]
+
+    features = ['MassHalo','Nsubs','MassBH','dotMassBH','SFR','VelHalo','z','M_HI']
+
+    support_data = {}
+
+    for feature in features:
+
+        # Initializing empty list
+        
+        support_data[feature] = []
+
+    name_files = [file for file in listdir(folder_path)]
+    
+    for idx,name_file in enumerate(name_files):
+
+        f = h5py.File(folder_path +'/' + name_file)
+
+        dim = f['MassHalo'][:].shape[0]
+
+        for feature in features:
+
+            if feature == 'z':
+                support_data[feature].extend( [z[idx]]*dim )
+
+            elif feature == 'VelHalo':
+                support_data[feature].extend(np.linalg.norm(f[feature][:], axis = 1))
+
+            else:
+                support_data[feature].extend(f[feature][:])
+        
+    data = np.empty((len(support_data['MassHalo']),len(features)-1))
+
+    for idx,feature in enumerate(features[:-1]):
+
+        data[:,idx] = np.array(support_data[feature])
+
+    mask = (data[:,2] != 0) & (data[:,3] != 0) & (data[:,4] != 0)
+
+    data = data[mask]
+
+    data = (data - data.mean()) / (data.std())
+
+    target = np.array(support_data['M_HI'])[mask]
+
+    return data,target,data.shape[1]
+    
 
 def scaling(x):
     """
