@@ -49,7 +49,7 @@ def get_single_dataset(path, features = ['MassHalo','Nsubs','MassBH','dotMassBH'
 
     #target = np.log10(f['M_HI'][mask]/1e10)
 
-    data = (data - data.mean()) / data.std()
+    data = (data - np.mean(data, axis=0)) / np.std(data, axis=0)
     
     target = f['M_HI'][mask]
 
@@ -98,7 +98,7 @@ def get_dataset_LH_fixed(folder_path):
 
     data = data[mask]
 
-    data = (data - data.mean()) / (data.std())
+    data = (data - np.mean(data, axis=0)) / (np.std(data, axis=0))
 
     target = np.array(support_data['M_HI'])[mask]
 
@@ -116,7 +116,7 @@ def scaling(x):
         x: array of shape (N,) containing the rescaled values
      """
 
-    return x/ (10**10)
+    return x/(10**10)
 
 
 def visualization(losses_test, losses_train, R2_train, R2_test):
