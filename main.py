@@ -44,7 +44,9 @@ if __name__ == '__main__':
     #X, y, dim_feat = get_single_dataset(params.path_file)
     X, y, dim_feat = get_dataset_LH_fixed('./outputs_test/LH_0')
 
-    if params.activation == 'sigmoid':
+    y = np.log10(y)
+
+    if params.activation == 'sigmoid' and False:
         # Computing minmax scaling
         y = (y - y.min()) / (y.max() - y.min())
 
@@ -186,6 +188,9 @@ if __name__ == '__main__':
             output = model(data)
             # Computing the loss
             loss = criterion(torch.flatten(output),target)
+            #print('Loss: ', loss)
+            #print('Output: ', output)
+            #print('Target: ', target)
             # Computing the gradient w.r.t. model parameters
             loss.backward()
             # Adjusting the weights using SGD
@@ -258,7 +263,7 @@ if __name__ == '__main__':
                         'scheduler_state': scheduler.state_dict(),
                         'best_loss': prev_loss}, PATH)
 
-        print('Epoch %d: train_loss=%.4f, validation_loss=%.4f' %(epoch+1, loss_train, loss_test))
+        print('Epoch %d: train_loss=%.4f, test_loss=%.4f' %(epoch+1, loss_train, loss_test))
 
         # Saving the last model used at evey epoch
         PATH = './checkpoints/last_model.pt'

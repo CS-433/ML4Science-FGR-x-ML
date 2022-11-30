@@ -144,8 +144,8 @@ def visualization(losses_test, losses_train, R2_train, R2_test):
 
 def correlation_plot(predicted, y):
     fig, ax = plt.subplots(figsize=(12, 8))
-    ax.scatter(y, predicted, edgecolors=(0, 0, 0))
-    ax.plot([min(y), max(y)], [min(y), max(y)], 'r--', lw=4)
+    ax.scatter(10**y, 10**predicted, edgecolors=(0, 0, 0))
+    ax.plot([min(10**y), max(10**y)], [min(10**y), max(10**y)], 'r--', lw=4)
     ax.set_xlabel('Original')
     ax.set_ylabel('Predicted')
 

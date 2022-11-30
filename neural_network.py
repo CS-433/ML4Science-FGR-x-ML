@@ -15,20 +15,26 @@ class my_FNN_increasing(nn.Module):
         super().__init__()
         # Generating and initializing each layer
         self.l1 = nn.Linear(num_feature,64,dtype=dtype)
+        self.reLU1 = nn.ReLU()
         self.l2 = nn.Linear(64,128,dtype=dtype)
+        self.reLU2 = nn.ReLU()
         self.l3 = nn.Linear(128,256,dtype=dtype)
+        self.reLU3 = nn.ReLU()
         self.l4 = nn.Linear(256,1,dtype=dtype)
-        self.l5 = nn.Sigmoid()
+        #self.l5 = nn.Sigmoid()
 
     def forward(self,input):
 
         "Function to implement the forward pass"
 
         out = self.l1(input)
+        out = self.reLU1(out)
         out = self.l2(out)
+        out = self.reLU2(out)
         out = self.l3(out)
+        out = self.reLU3(out)
         out = self.l4(out)
-        out = self.l5(out)
+        #out = self.l5(out)
         
         return out
 
