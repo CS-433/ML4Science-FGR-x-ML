@@ -55,11 +55,9 @@ def get_single_dataset(path, features = ['MassHalo','Nsubs','MassBH','dotMassBH'
 
     return data, target, data.shape[1]
 
-def get_dataset_LH_fixed(folder_path):
+def get_dataset_LH_fixed(folder_path, features = ['MassHalo','Nsubs','MassBH','dotMassBH','SFR','VelHalo','z','M_HI'] ):
 
     z = [0.77, 0.86, 0.95, 1.05, 1.15, 1.25, 1.36, 1.48, 1.6, 1.73, 1.86, 2, 2.15, 2.3, 2.46, 2.63]
-
-    features = ['MassHalo','Nsubs','MassBH','dotMassBH','SFR','VelHalo','z','M_HI']
 
     support_data = {}
 
@@ -69,7 +67,7 @@ def get_dataset_LH_fixed(folder_path):
         
         support_data[feature] = []
 
-    name_files = [file for file in listdir(folder_path)]
+    name_files = [file for file in listdir(folder_path) if not file.startswith('compare')]
     
     for idx,name_file in enumerate(name_files):
 
