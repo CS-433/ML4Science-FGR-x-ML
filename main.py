@@ -42,11 +42,11 @@ if __name__ == '__main__':
     # Loading dataset
     
     #X, y, dim_feat = get_single_dataset(params.path_file)
-    X, y, dim_feat = get_dataset_LH_fixed('./outputs_test2/LH_0', features = ['MassHalo','Nsubs','MassBH','dotMassBH','SFR','Flux','Density','Temp','VelHalo','z','M_HI'] )
+    X, y, dim_feat, mean_halo, std_halo = get_dataset_LH_fixed('./outputs_test2/LH_0', 
+                                        features = ['MassHalo','Nsubs','MassBH','dotMassBH','SFR','Flux','Density','Temp','VelHalo','z','M_HI'],)
 
     # Scaling the output
     y = np.log10(y)
-    y.dtype = np.float64
 
     # Splitting data into train and test set
     # 75 % train, 20% test, 5% validation
@@ -273,7 +273,7 @@ if __name__ == '__main__':
     
     ##### VALIDATION #####
 
-    PATH = './checkpoints/best_model.pt'
+    PATH = './checkpoints_increasing_relu_nodropout_nostandznsubs/best_model.pt' ################
 
     best_model = my_FNN_increasing(dim_feat,params.dtype)
 
@@ -291,9 +291,15 @@ if __name__ == '__main__':
 
         output_validation = best_model(X_val)
         
-    plt.clf() # to clear the current figure
-    correlation_plot(output_validation.cpu().detach().numpy(), y_val.cpu().detach().numpy())
-    plt.savefig('./checkpoints/correlation_plot.png', bbox_inches='tight') # saving correlation plot
+    plt.clf()
+    cloud_of_points(output_validation.cpu().detach().numpy(), y_val.cpu().detach().numpy(), 
+                    X_val[:,0].cpu().detach().numpy(), mean_halo, std_halo)
+    plt.savefig('./checkpoints_increasing_relu_nodropout_nostandznsubs/cloud_of_points.png', bbox_inches='tight')
+
+    #plt.clf() # to clear the current figure
+    #correlation_plot(output_validation.cpu().detach().numpy(), y_val.cpu().detach().numpy())
+    #plt.savefig('./checkpoints/correlation_plot.png', bbox_inches='tight') # saving correlation plot
+
 
 
 

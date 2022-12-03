@@ -21,6 +21,8 @@ def get_single_dataset(path, features = ['MassHalo','Nsubs','MassBH','dotMassBH'
         data: array of shape (N,len(features)-1)
         target: array of shape (N,) containing the true output value of each observation
         shape : scalar corresponding to the number of features
+        mean_halo: float representing the mean of massHalo values
+        std_halo: float representing the standard deviation of massHalo values
      """
     f = h5py.File(path)
 
@@ -47,15 +49,34 @@ def get_single_dataset(path, features = ['MassHalo','Nsubs','MassBH','dotMassBH'
     #data[:,3] = np.log10(data[:,3])
     data[:,4] = f['SFR'][mask]
 
-    #target = np.log10(f['M_HI'][mask]/1e10)
+    # Standardizing data
+
+    mean_halo, std_halo = data[:,0].mean(), data[:,0].std()
 
     data = (data - np.mean(data, axis=0)) / np.std(data, axis=0)
+
+    # Defining output
     
     target = f['M_HI'][mask]
 
-    return data, target, data.shape[1]
+    return data, target, data.shape[1], mean_halo, std_halo
 
-def get_dataset_LH_fixed(folder_path, features = ['MassHalo','Nsubs','MassBH','dotMassBH','SFR','VelHalo','z','M_HI'], log_transform = False):
+
+def get_dataset_LH_fixed(folder_path, features = ['MassHalo','Nsubs','MassBH','dotMassBH','SFR','VelHalo','z','M_HI']):
+    """
+    Function to retrieve all the datasets related to a fixed simulation.
+    
+    Args:
+        path: path where to find the file
+        features: list of features to extract from the dataset. M_HI must be always passed as last argument
+    
+    Returns:
+        data: array of shape (N,len(features)-1)
+        target: array of shape (N,) containing the true output value of each observation
+        shape : scalar corresponding to the number of features
+        mean_halo: float representing the mean of massHalo values
+        std_halo: float representing the standard deviation of massHalo values
+     """
 
     z = [0.77, 0.86, 0.95, 1.05, 1.15, 1.25, 1.36, 1.48, 1.6, 1.73, 1.86, 2, 2.15, 2.3, 2.46, 2.63]
 
@@ -89,37 +110,33 @@ def get_dataset_LH_fixed(folder_path, features = ['MassHalo','Nsubs','MassBH','d
 
     data = np.empty((len(support_data['MassHalo']),len(features)-1))
 
+    # Defining data
+
     for idx,feature in enumerate(features[:-1]):
 
         data[:,idx] = np.array(support_data[feature])
+
+    # Defning mask to avoid having too many zero values
 
     mask = (data[:,2] != 0) & (data[:,3] != 0) & (data[:,4] != 0)
 
     data = data[mask]
 
-    if log_transform:
+    # Saving mean and std of masHalo for later plots
 
-        data[:,[0,2,3]] = np.log(data[:,[0,2,3]])
+    mean_halo, std_halo = data[:,0].mean(), data[:,0].std()
 
-    data = (data - np.mean(data, axis=0)) / (np.std(data, axis=0))
+    # Standardizing data
+    
+    data[:,[0,2,3,4,5,6,7,8,9]] = (data[:,[0,2,3,4,5,6,7,8,9]] - np.mean(data[:,[0,2,3,4,5,6,7,8,9]], 
+    axis=0)) / (np.std(data[:,[0,2,3,4,5,6,7,8,9]], axis=0))
 
     target = np.array(support_data['M_HI'], dtype = np.float64)[mask]
 
-    return data,target,data.shape[1]
-    
+    return data,target,data.shape[1], mean_halo, std_halo
 
-def scaling(x):
-    """
-    Function to compute rescaling on a 1 dimensional numpy array.
-    
-    Args:
-        x: array of shape (N,)
-    
-    Returns:
-        x: array of shape (N,) containing the rescaled values
-     """
 
-    return x/(10**10)
+##### VISUALIZATION TOOLS #####
 
 
 def visualization(losses_test, losses_train, R2_train, R2_test):
@@ -151,6 +168,28 @@ def correlation_plot(predicted, y):
     ax.plot([min(10**y), max(10**y)], [min(10**y), max(10**y)], 'r--', lw=4)
     ax.set_xlabel('Original')
     ax.set_ylabel('Predicted')
+
+def cloud_of_points(predictions,target,massHalo, mean_halo, std_halo):
+    """
+    Function to plot the MHI against massHalo and compare theroetical results with the predictions of the model."""
+
+    # Converting massHalo values to original scale
+    massHalo = (massHalo*std_halo) + mean_halo
+
+    # COnverting output values to original scale
+
+    predictions = 10 ** predictions
+    target = 10 ** target
+
+    fig, axs = plt.subplots(1,2, figsize = (5,10))
+    axs[0].scatter(massHalo, predictions, alpha = 0.8, marker = '.')
+    axs[0].set_title('Scatter plot using original data')
+    axs[0].set(xscale='log', yscale='log', xlim=(1e9, 1e14), ylim=(1e6, 1e12))
+
+    axs[1].scatter(massHalo,target, alpha = 0.8, marker = '.')
+    axs[1].set_title('Scatter plot using predicted data')
+    axs[1].set(xscale='log', yscale='log', xlim=(1e9, 1e14), ylim=(1e-4, 1e12) )
+
 
 
 
