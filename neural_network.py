@@ -15,13 +15,13 @@ class my_FNN_increasing(nn.Module):
         super().__init__()
         # Generating and initializing each layer
         self.l1 = nn.Linear(num_feature,64,dtype=dtype)
-        self.reLU1 = nn.LeakyReLU()
+        self.reLU1 = nn.ReLU()
         self.l2 = nn.Linear(64,128,dtype=dtype)
-        self.reLU2 = nn.LeakyReLU()
+        self.reLU2 = nn.ReLU()
         self.l3 = nn.Linear(128,256,dtype=dtype)
-        self.reLU3 = nn.LeakyReLU()
+        self.reLU3 = nn.ReLU()
         self.l4 = nn.Linear(256,1,dtype=dtype)
-        self.dropout = nn.Dropout(0.25)
+        #self.dropout = nn.Dropout(0.25)
 
     def forward(self,input):
 
@@ -29,13 +29,13 @@ class my_FNN_increasing(nn.Module):
 
         out = self.l1(input)
         out = self.reLU1(out)
-        out = self.dropout(out)
+        #out = self.dropout(out)
         out = self.l2(out)
         out = self.reLU2(out)
-        out = self.dropout(out)
+        #out = self.dropout(out)
         out = self.l3(out)
         out = self.reLU3(out)
-        out = self.dropout(out)
+        #out = self.dropout(out)
         out = self.l4(out)
         #out = self.l5(out)
         
@@ -59,7 +59,7 @@ class my_FNN_mirror(nn.Module):
         self.reLU3 = nn.LeakyReLU()
         self.l4 = nn.Linear(64,1,dtype=dtype)
 
-        self.dropout = nn.Dropout(0.25)
+        #self.dropout = nn.Dropout(0.25)
 
     def forward(self,input):
 
@@ -67,13 +67,13 @@ class my_FNN_mirror(nn.Module):
 
         out = self.l1(input)
         out = self.reLU1(out)
-        out = self.dropout(out)
+        #out = self.dropout(out)
         out = self.l2(out)
         out = self.reLU2(out)
-        out = self.dropout(out)
+        #out = self.dropout(out)
         out = self.l3(out)
         out = self.reLU3(out)
-        out = self.dropout(out)
+        #out = self.dropout(out)
         out = self.l4(out)
 
         return out
