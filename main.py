@@ -26,7 +26,6 @@ class Customized_dataset(Dataset):
         super().__init__()
         self.X = torch.tensor(X)
         self.target = torch.tensor(target)
-        self.dtype = self.X.dtype
     
     def __len__(self):
         return self.X.shape[0]
@@ -41,17 +40,14 @@ if __name__ == '__main__':
     gc.collect()
     
     # Loading dataset
+    
     #X, y, dim_feat = get_single_dataset(params.path_file)
-    X, y, dim_feat = get_dataset_LH_fixed('./outputs_test/LH_0')
+    X, y, dim_feat = get_dataset_LH_fixed('./outputs_test2/LH_0/', features = ['MassHalo','Nsubs','MassBH','dotMassBH','SFR','Flux','Density','Temp','VelHalo','z','M_HI'] )
 
+    # Scaling the output
     y = np.log10(y)
 
-    if params.activation == 'sigmoid' and False:
-        # Computing minmax scaling
-        y = (y - y.min()) / (y.max() - y.min())
-
     # Splitting data into train and test set
-
     # 75 % train, 20% test, 5% validation
     X_train,X_test,y_train,y_test = train_test_split(X, y, test_size=0.25, random_state=2022)
 

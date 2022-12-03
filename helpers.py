@@ -55,7 +55,7 @@ def get_single_dataset(path, features = ['MassHalo','Nsubs','MassBH','dotMassBH'
 
     return data, target, data.shape[1]
 
-def get_dataset_LH_fixed(folder_path, features = ['MassHalo','Nsubs','MassBH','dotMassBH','SFR','VelHalo','z','M_HI'] ):
+def get_dataset_LH_fixed(folder_path, features = ['MassHalo','Nsubs','MassBH','dotMassBH','SFR','VelHalo','z','M_HI'], log_transform = False):
 
     z = [0.77, 0.86, 0.95, 1.05, 1.15, 1.25, 1.36, 1.48, 1.6, 1.73, 1.86, 2, 2.15, 2.3, 2.46, 2.63]
 
@@ -95,6 +95,10 @@ def get_dataset_LH_fixed(folder_path, features = ['MassHalo','Nsubs','MassBH','d
     mask = (data[:,2] != 0) & (data[:,3] != 0) & (data[:,4] != 0)
 
     data = data[mask]
+
+    if log_transform:
+
+        data[:,[0,2,3]] = np.log(data[:,[0,2,3]])
 
     data = (data - np.mean(data, axis=0)) / (np.std(data, axis=0))
 

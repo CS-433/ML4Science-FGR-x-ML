@@ -21,7 +21,6 @@ class my_FNN_increasing(nn.Module):
         self.l3 = nn.Linear(128,256,dtype=dtype)
         self.reLU3 = nn.LeakyReLU()
         self.l4 = nn.Linear(256,1,dtype=dtype)
-        #self.l5 = nn.Sigmoid()
         self.dropout = nn.Dropout(0.25)
 
     def forward(self,input):
