@@ -273,7 +273,7 @@ if __name__ == '__main__':
     
     ##### VALIDATION #####
 
-    PATH = './checkpoints_increasing_relu_nodropout_nostandznsubs/best_model.pt' ################
+    PATH = './checkpoints/best_model.pt' 
 
     best_model = my_FNN_increasing(dim_feat,params.dtype)
 
@@ -294,11 +294,11 @@ if __name__ == '__main__':
     plt.clf()
     cloud_of_points(output_validation.cpu().detach().numpy(), y_val.cpu().detach().numpy(), 
                     X_val[:,0].cpu().detach().numpy(), mean_halo, std_halo)
-    plt.savefig('./checkpoints_increasing_relu_nodropout_nostandznsubs/cloud_of_points.png', bbox_inches='tight')
+    plt.savefig('./checkpoints/cloud_of_points.png', bbox_inches='tight')
 
-    #plt.clf() # to clear the current figure
-    #correlation_plot(output_validation.cpu().detach().numpy(), y_val.cpu().detach().numpy())
-    #plt.savefig('./checkpoints/correlation_plot.png', bbox_inches='tight') # saving correlation plot
+    plt.clf() # to clear the current figure
+    correlation_plot(output_validation.cpu().detach().numpy(), y_val.cpu().detach().numpy())
+    plt.savefig('./checkpoints/correlation_plot.png', bbox_inches='tight') # saving correlation plot
 
 
 

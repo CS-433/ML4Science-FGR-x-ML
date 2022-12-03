@@ -168,6 +168,7 @@ def correlation_plot(predicted, y):
     ax.plot([min(10**y), max(10**y)], [min(10**y), max(10**y)], 'r--', lw=4)
     ax.set_xlabel('Original')
     ax.set_ylabel('Predicted')
+    ax.set_title('Correlation plot: True values vs Predicted values')
 
 def cloud_of_points(predictions,target,massHalo, mean_halo, std_halo):
     """
@@ -181,14 +182,14 @@ def cloud_of_points(predictions,target,massHalo, mean_halo, std_halo):
     predictions = 10 ** predictions
     target = 10 ** target
 
-    fig, axs = plt.subplots(1,2, figsize = (5,10))
+    fig, axs = plt.subplots(1,2, figsize = (10,5))
     axs[0].scatter(massHalo, predictions, alpha = 0.8, marker = '.')
-    axs[0].set_title('Scatter plot using original data')
-    axs[0].set(xscale='log', yscale='log', xlim=(1e9, 1e14), ylim=(1e6, 1e12))
+    axs[0].set_title('Scatter plot using predicted data')
+    axs[0].set(xscale='log', yscale='log', xlim=(1e9, 1e14), ylim=(1e6, 1e12), xlabel='MassHalo', ylabel='MassHI')
 
     axs[1].scatter(massHalo,target, alpha = 0.8, marker = '.')
-    axs[1].set_title('Scatter plot using predicted data')
-    axs[1].set(xscale='log', yscale='log', xlim=(1e9, 1e14), ylim=(1e-4, 1e12) )
+    axs[1].set_title('Scatter plot using original data')
+    axs[1].set(xscale='log', yscale='log', xlim=(1e9, 1e14), ylim=(1e6, 1e12), xlabel='MassHalo', ylabel='MassHI' )
 
 
 
