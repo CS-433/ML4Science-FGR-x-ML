@@ -42,10 +42,11 @@ if __name__ == '__main__':
     # Loading dataset
     
     #X, y, dim_feat = get_single_dataset(params.path_file)
-    X, y, dim_feat = get_dataset_LH_fixed('./outputs_test2/LH_0/', features = ['MassHalo','Nsubs','MassBH','dotMassBH','SFR','Flux','Density','Temp','VelHalo','z','M_HI'] )
+    X, y, dim_feat = get_dataset_LH_fixed('./outputs_test2/LH_0', features = ['MassHalo','Nsubs','MassBH','dotMassBH','SFR','Flux','Density','Temp','VelHalo','z','M_HI'] )
 
     # Scaling the output
     y = np.log10(y)
+    y.dtype = np.float64
 
     # Splitting data into train and test set
     # 75 % train, 20% test, 5% validation
@@ -55,6 +56,7 @@ if __name__ == '__main__':
 
     # Converting data into pytorch dataset object
     train_dataset = Customized_dataset(X_train,y_train)
+
     test_dataset = Customized_dataset(X_test,y_test)
 
     # Since we do not want to iterate over the validation set, we only convert it to a tensor

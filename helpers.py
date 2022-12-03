@@ -86,6 +86,7 @@ def get_dataset_LH_fixed(folder_path, features = ['MassHalo','Nsubs','MassBH','d
             else:
                 support_data[feature].extend(f[feature][:])
         
+
     data = np.empty((len(support_data['MassHalo']),len(features)-1))
 
     for idx,feature in enumerate(features[:-1]):
@@ -102,7 +103,7 @@ def get_dataset_LH_fixed(folder_path, features = ['MassHalo','Nsubs','MassBH','d
 
     data = (data - np.mean(data, axis=0)) / (np.std(data, axis=0))
 
-    target = np.array(support_data['M_HI'])[mask]
+    target = np.array(support_data['M_HI'], dtype = np.float64)[mask]
 
     return data,target,data.shape[1]
     
