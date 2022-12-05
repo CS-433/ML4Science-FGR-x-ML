@@ -62,7 +62,7 @@ def get_single_dataset(path, features = ['MassHalo','Nsubs','MassBH','dotMassBH'
     return data, target, data.shape[1], mean_halo, std_halo
 
 
-def get_dataset_LH_fixed(folder_path, features = ['MassHalo','Nsubs','MassBH','dotMassBH','SFR','VelHalo','z','M_HI']):
+def get_dataset_LH_fixed(folder_path, features = ['MassHalo','Nsubs','MassBH','dotMassBH','SFR','VelHalo','z','M_HI'], masking=True):
     """
     Function to retrieve all the datasets related to a fixed simulation.
     
@@ -120,7 +120,8 @@ def get_dataset_LH_fixed(folder_path, features = ['MassHalo','Nsubs','MassBH','d
 
     mask = (data[:,2] != 0) & (data[:,3] != 0) & (data[:,4] != 0)
 
-    data = data[mask]
+    if masking:
+        data = data[mask]
 
     # Saving mean and std of masHalo for later plots
 
@@ -131,7 +132,10 @@ def get_dataset_LH_fixed(folder_path, features = ['MassHalo','Nsubs','MassBH','d
     data[:,[0,2,3,4,5,6,7,8,9]] = (data[:,[0,2,3,4,5,6,7,8,9]] - np.mean(data[:,[0,2,3,4,5,6,7,8,9]], 
     axis=0)) / (np.std(data[:,[0,2,3,4,5,6,7,8,9]], axis=0))
 
-    target = np.array(support_data['M_HI'], dtype = np.float64)[mask]
+    target = np.array(support_data['M_HI'], dtype = np.float64)
+    
+    if masking:
+        target=target[mask]
 
     return data,target,data.shape[1], mean_halo, std_halo
 
@@ -170,8 +174,8 @@ def correlation_plot(predicted, y):
 
     # Adding lines
 
-    ax.plot([min(10**y), max(10**y)], [min(10**y)*(1+0.34), max(10**y)*(1+0.34)], 'r--', lw=4)
-    ax.plot([min(10**y), max(10**y)], [min(10**y)*(1-0.34), max(10**y)*(1-0.34)], 'r--', lw=4)
+    ax.plot([min(10**y), max(10**y)], [min(10**y)*(1+0.34), max(10**y)*(1+0.34)], 'y--', lw=2)
+    ax.plot([min(10**y), max(10**y)], [min(10**y)*(1-0.34), max(10**y)*(1-0.34)], 'y--', lw=2)
     
     ax.set_xlabel('Original')
     ax.set_ylabel('Predicted')
@@ -193,11 +197,11 @@ def cloud_of_points(predictions,target,massHalo, mean_halo, std_halo):
     fig, axs = plt.subplots(1,2, figsize = (10,5))
     axs[0].scatter(massHalo, predictions, alpha = 0.8, marker = '.')
     axs[0].set_title('Scatter plot using predicted data')
-    axs[0].set(xscale='log', yscale='log', xlim=(1e9, 1e14), ylim=(1e6, 1e12), xlabel='MassHalo', ylabel='MassHI')
+    axs[0].set(xscale='log', yscale='log', xlim=(1e7, 1e14), ylim=(1e-2, 1e12), xlabel='MassHalo', ylabel='MassHI')
 
     axs[1].scatter(massHalo,target, alpha = 0.8, marker = '.')
     axs[1].set_title('Scatter plot using original data')
-    axs[1].set(xscale='log', yscale='log', xlim=(1e9, 1e14), ylim=(1e6, 1e12), xlabel='MassHalo', ylabel='MassHI' )
+    axs[1].set(xscale='log', yscale='log', xlim=(1e7, 1e14), ylim=(1e-2, 1e12), xlabel='MassHalo', ylabel='MassHI' )
 
 
 
