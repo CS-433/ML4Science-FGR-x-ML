@@ -206,8 +206,8 @@ if __name__ == '__main__':
 
         model.eval() # useful when using Droput
 
-        loss_test_vector = [] #vector of losses on test data for a single epoch
-        R2_test = []          # #vector of R2 scores on test data for a single epoch
+        loss_test_vector = [] # vector of losses on test data for a single epoch
+        R2_test = []          # vector of R2 scores on test data for a single epoch
 
         for batch_idx, (data,target) in enumerate(test_loader):
             
