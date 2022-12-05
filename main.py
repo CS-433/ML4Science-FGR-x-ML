@@ -22,7 +22,7 @@ import pickle
 
 if __name__ == '__main__':
 
-#------- INITIALIZATION AND IMPORTING DATA -------
+#------- INITIALIZATION AND IMPORTING DATA -------#
 
     gc.collect()
     
@@ -60,7 +60,7 @@ if __name__ == '__main__':
 
     gc.collect()
 
-#------- IMPORTING AN ALREADY TRAINED MODEL (IF FIRST_RUN = FALSE) OR INITIALIZING TOOLS TO TRAIN THE NETWORK -------
+#------- IMPORTING AN ALREADY TRAINED MODEL (IF FIRST_RUN = FALSE) OR INITIALIZING TOOLS TO TRAIN THE NETWORK -------#
     
     # Defining num_epochs
     epochs = params.epochs
@@ -151,7 +151,7 @@ if __name__ == '__main__':
         R2_epoch_train = R2_train['R2_train']
         R2_epoch_test = R2_test['R2_test']
 
-#------- TRAINING AND TESTING PROCESS -------
+#------- TRAINING AND TESTING PROCESS -------#
     
     for epoch in range(current_epoch, final_epoch):
         
@@ -265,7 +265,7 @@ if __name__ == '__main__':
                     'scheduler_state': scheduler.state_dict(),
                     'prev_loss': prev_loss}, PATH)
     
-#------- VALIDATION PROCESS -------
+#------- VALIDATION PROCESS -------#
 
     # Defining the path from which it is possible to retrieve the best trained model
     PATH = './checkpoints/best_model.pt' 
