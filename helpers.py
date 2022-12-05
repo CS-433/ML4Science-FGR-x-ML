@@ -8,6 +8,22 @@ from os import listdir
 from torch.utils.data import Dataset
 import matplotlib.pyplot as plt
 
+# Defining useful class to convert data in a format accepted by Pytorch
+class Customized_dataset(Dataset):
+
+    def __init__(self,X,target):
+        super().__init__()
+        self.X = torch.tensor(X)
+        self.target = torch.tensor(target)
+    
+    def __len__(self):
+        return self.X.shape[0]
+
+    def __getitem__(self, idx):
+
+        return self.X[idx,:], self.target[idx]
+
+##### HELPER FUNCTIONS #####
 
 def get_single_dataset(path, features = ['MassHalo','Nsubs','MassBH','dotMassBH','SFR','M_HI']):
     """

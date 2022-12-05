@@ -17,22 +17,6 @@ import params
 from sklearn.metrics import r2_score
 import pickle
 
-##### GLOBAL ENVIRONMENT #####
-
-# Defining useful class to convert data in a format accepted by Pytorch
-class Customized_dataset(Dataset):
-
-    def __init__(self,X,target):
-        super().__init__()
-        self.X = torch.tensor(X)
-        self.target = torch.tensor(target)
-    
-    def __len__(self):
-        return self.X.shape[0]
-
-    def __getitem__(self, idx):
-
-        return self.X[idx,:], self.target[idx]
 
 ##### MAIN SCRIPT TO RUN #####
 if __name__ == '__main__':
