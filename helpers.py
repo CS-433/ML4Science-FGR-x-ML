@@ -2,36 +2,44 @@
 
 import torch 
 import torch.nn as nn
+from torch.utils.data import Dataset
 import numpy as np
+import matplotlib.pyplot as plt
 import h5py
 from os import listdir
-from torch.utils.data import Dataset
-import matplotlib.pyplot as plt
 
-# Defining useful class to convert data in a format accepted by Pytorch
+# Defining useful class to convert data in a format accepted by Pytorch. 
+
 class Customized_dataset(Dataset):
+    """ 
+    This class allows to use DataLoader method from Pytorch to create train and test data
+    """
 
     def __init__(self,X,target):
         super().__init__()
+        # Converting numpy object to tensor
         self.X = torch.tensor(X)
         self.target = torch.tensor(target)
     
     def __len__(self):
+        # The magic method __len__ must be implemented in order to use Pytorch DataLoader
         return self.X.shape[0]
 
     def __getitem__(self, idx):
-
+        # The magic method __getitem__ must be implemented in order to use Pytorch DataLoader
         return self.X[idx,:], self.target[idx]
+
 
 ##### HELPER FUNCTIONS #####
 
-def get_single_dataset(path, features = ['MassHalo','Nsubs','MassBH','dotMassBH','SFR','Flux','Density','Temp','VelHalo','z','M_HI'],):
+def get_single_dataset(path, features = ['MassHalo','Nsubs','MassBH','dotMassBH','SFR','Flux','Density','Temp','VelHalo','z','M_HI'], masking=True):
     """
-    Function to retrieve a single dataset.
+    Function to retrieve a single dataset. The corresponding simulation (LH) and redshift (z) are given as input in the path string.
     
     Args:
-        path: path where to find the file
+        path: string indicating where to find the file
         features: list of features to extract from the dataset. M_HI must be always passed as last argument
+        masking : boolean indicating whether to remove zeros values or not. If true, the model is trained only considering halos whose mass is higher than 1e10
     
     Returns:
         data: array of shape (N,len(features)-1)
@@ -40,51 +48,53 @@ def get_single_dataset(path, features = ['MassHalo','Nsubs','MassBH','dotMassBH'
         mean_halo: float representing the mean of massHalo values
         std_halo: float representing the standard deviation of massHalo values
      """
+
+    # Importing the file 
     f = h5py.File(path)
 
-    # Creating mask
-
-    mass_BH = f['MassBH'][:]
-    dot_massBH = f['dotMassBH'][:]
-    sfr = f['SFR'][:]
-
-    mask = (mass_BH != 0) & (dot_massBH !=0) & (sfr !=0)
-
-    # Creating structure
-
+    # Creating data structure to later store the data
     data = np.empty((np.sum(mask), len(features) -1) )
 
-    # Initializing structure
+    # Collecting data
+    for idx,feature in features[:-1]:
 
-    data[:,0] = f['MassHalo'][mask]  #/ (10**10)
-    #data[:,0] = np.log10(data[:,0])
-    data[:,1] = f['Nsubs'][mask]
-    data[:,2] = f['MassBH'][mask] # / (10**10)
-    #data[:,2] = np.log10(data[:,2])
-    data[:,3] = f['dotMassBH'][mask] # * 0.978 / (10**10)
-    #data[:,3] = np.log10(data[:,3])
-    data[:,4] = f['SFR'][mask]
+        if feature == 'VelHalo':
+            # Computing the euclidean norm of the velocity
+            data[:,idx] = np.linalg.norm(f[feature][:], axis = 1)
+        else:
+            data[:,idx] = f[feature][:]
+    
+    # Defining mask to avoid having too many zero values. THe mask filter all halos having mass values larger thant 1e10
+    if masking:
+        mask = (data[:,2] != 0) & (data[:,3] != 0) & (data[:,4] != 0) # the masking is done w.r.t. MassBH, dotMassBH and SFR values
+        data = data[mask]
 
-    # Standardizing data
-
+    # Saving mean and std of massHalo for later plots(for further details, see plots.py)
     mean_halo, std_halo = data[:,0].mean(), data[:,0].std()
 
-    data = (data - np.mean(data, axis=0)) / np.std(data, axis=0)
+    # Standardizing data
+    features_to_standardize = [0,2,3,4,5,6,7,8,9]
+    data[:, features_to_standardize] = (data[:, features_to_standardize] - np.mean(data[:, features_to_standardize], axis=0)) / np.std(data[:, features_to_standardize], axis=0)
 
-    # Defining output
-    
-    target = f['M_HI'][mask]
+    # Collecting output values
+    target = f['M_HI'][mask] if masking else f['M_HI'][:]
+    target.dtype = np.float64
+
+    # Closing file
+    f.close()
 
     return data, target, data.shape[1], mean_halo, std_halo
 
 
 def get_dataset_LH_fixed(folder_path, features = ['MassHalo','Nsubs','MassBH','dotMassBH','SFR','Flux','Density','Temp','VelHalo','z','M_HI'], masking=True):
     """
-    Function to retrieve all the datasets related to a fixed simulation.
+    Function to retrieve all the datasets related to a fixed simulation (fixed LH, different redshifts). Since all the observations share the same astrophysical and cosmological
+    constants, these values are not considered as features since they would provide useless information.
     
     Args:
-        path: path where to find the file
+        path: string indicating where to find the file
         features: list of features to extract from the dataset. M_HI must be always passed as last argument
+        masking : boolean indicating whether to remove zeros values or not. If true, the model is trained only considering halos whose mass is higher than 1e10
     
     Returns:
         data: array of shape (N,len(features)-1)
@@ -94,6 +104,7 @@ def get_dataset_LH_fixed(folder_path, features = ['MassHalo','Nsubs','MassBH','d
         std_halo: float representing the standard deviation of massHalo values
      """
 
+    # Defining all the redshifts in our simulation
     z = [0.77, 0.86, 0.95, 1.05, 1.15, 1.25, 1.36, 1.48, 1.6, 1.73, 1.86, 2, 2.15, 2.3, 2.46, 2.63]
 
     support_data = {}
@@ -101,53 +112,54 @@ def get_dataset_LH_fixed(folder_path, features = ['MassHalo','Nsubs','MassBH','d
     for feature in features:
 
         # Initializing empty list
-        
         support_data[feature] = []
 
+    # Saving all the file names corresponding to LH given in folder_path
     name_files = [file for file in listdir(folder_path) if not file.startswith('compare')]
     
     for idx,name_file in enumerate(name_files):
 
+        # Importing data from the current file
         f = h5py.File(folder_path +'/' + name_file)
 
         dim = f['MassHalo'][:].shape[0]
 
+        # Saving each feature of the current file in support_data
         for feature in features:
 
             if feature == 'z':
+                # Since we have observations with different redshifts, we add this value to the feature we consider to train the model
                 support_data[feature].extend( [z[idx]]*dim )
 
             elif feature == 'VelHalo':
+                # Computing the euclidean norm of the velocity
                 support_data[feature].extend(np.linalg.norm(f[feature][:], axis = 1))
 
             else:
                 support_data[feature].extend(f[feature][:])
-        
-
-    data = np.empty((len(support_data['MassHalo']),len(features)-1))
+        f.close()   
 
     # Defining data
+    data = np.empty((len(support_data['MassHalo']),len(features)-1))
 
+    # Appending all the data from different files in the same numpy array
     for idx,feature in enumerate(features[:-1]):
 
         data[:,idx] = np.array(support_data[feature])
 
-    # Defning mask to avoid having too many zero values
-
-    mask = (data[:,2] != 0) & (data[:,3] != 0) & (data[:,4] != 0)
-
+    # Defining mask to avoid having too many zero values. THe mask filter all halos having mass values larger thant 1e10
     if masking:
+        mask = (data[:,2] != 0) & (data[:,3] != 0) & (data[:,4] != 0) # the masking is done w.r.t. MassBH, dotMassBH and SFR values
         data = data[mask]
 
-    # Saving mean and std of masHalo for later plots
-
+    # Saving mean and std of massHalo for later plots(for further details, see plots.py) 
     mean_halo, std_halo = data[:,0].mean(), data[:,0].std()
 
     # Standardizing data
-    
-    data[:,[0,2,3,4,5,6,7,8,9]] = (data[:,[0,2,3,4,5,6,7,8,9]] - np.mean(data[:,[0,2,3,4,5,6,7,8,9]], 
-    axis=0)) / (np.std(data[:,[0,2,3,4,5,6,7,8,9]], axis=0))
+    features_to_standardize = [0,2,3,4,5,6,7,8,9]
+    data[:,features_to_standardize] = (data[:,features_to_standardize] - np.mean(data[:,features_to_standardize], axis=0)) / (np.std(data[:,features_to_standardize], axis=0))
 
+    # Collecting output values
     target = np.array(support_data['M_HI'], dtype = np.float64)
     
     if masking:
@@ -158,11 +170,13 @@ def get_dataset_LH_fixed(folder_path, features = ['MassHalo','Nsubs','MassBH','d
 
 def get_dataset_z_fixed(folder_path, features = ['MassHalo','Nsubs','MassBH','dotMassBH','SFR','Flux','Density','Temp','VelHalo', 'M_HI'], z = 0.950, masking=True):
     """
-    Function to retrieve all the datasets related to a fixed redshift.
+    Function to retrieve all the datasets related to a fixed redshift (different LH, fixed z). SInce z is fixed, its values is not considered as a feature 
+    since it would provide useless information.
 
     Args:
-        path: path where to find the file
+        path: string indicating where to find the file
         features: list of features to extract from the dataset. M_HI must be always passed as last argument
+        z: scalar corresponding to the analyzed redshift
 
     Returns:
         data: array of shape (N,len(features)-1)
@@ -172,122 +186,71 @@ def get_dataset_z_fixed(folder_path, features = ['MassHalo','Nsubs','MassBH','do
         std_halo: float representing the standard deviation of massHalo values
      """
 
+    # In addition to the input features, we also consider cosmological and astrophysical constants used to obtain the simulated data collected in the files in folder path
     astro_consts = ['Om0', 'sigma8', 'Asn1', 'Aagn1', 'Asn2', 'Aagn2']
+    # We load the above mentioned constants
     params = np.loadtxt('./outputs_test2/params_IllustrisTNG.txt')
-    support_data = {}
-
     features.extend(astro_consts)
+
+    support_data = {}
 
     for feature in features:
         # Initializing empty list
         support_data[feature] = []
 
+    # Saving all the file names corresponding to simulations
     name_LH_folders = [LH_folder for LH_folder in listdir(folder_path) if LH_folder.startswith('LH')]
 
 
     for idx_LH,name_LH_folder in enumerate(name_LH_folders):
+        # After retrieving the name of all the simulations, we create the name of the files we are interesting in by appending the redshift to the name of the simulation
         sim_file = 'MHI_LH'+ str(idx_LH) + '_z=' + '{:.3f}'.format(z) + '.hdf5'
-        print('idx:', idx_LH)
-        print('NameLH: ', name_LH_folder)
-        print('folder_path' + '/' + name_LH_folder + '/' + sim_file)
+    
+        # Importing data from the current file
         f = h5py.File(folder_path + '/' + name_LH_folder + '/' + sim_file)
 
         dim = f['MassHalo'][:].shape[0]
 
         for idx, feature in enumerate(features):
             if feature in astro_consts:
+                # Since we have observations coming from different simulations, we addfor each datapoint the cosmological and astrophysical constants used during the simulation
                 support_data[feature].extend([params[idx_LH][idx - features.index('Om0')]]*dim)
+
             elif feature == 'VelHalo':
+                # Computing the euclidean norm of the velocity
                 support_data[feature].extend(np.linalg.norm(f[feature][:], axis=1))
+
             else:
                 support_data[feature].extend(f[feature][:])
+        
+        # Closing file
+        f.close()
 
+    # Defining data
     data = np.empty((len(support_data['MassHalo']),len(features)-1))
 
     features.remove('M_HI')
+
+    # Appending all the data from different files in the same numpy array
     for idx,feature in enumerate(features):
         data[:,idx] = np.array(support_data[feature])
 
+    # Defining mask to avoid having too many zero values. THe mask filter all halos having mass values larger thant 1e10
     if masking:
-        mask = (data[:, 2] != 0) & (data[:, 3] != 0) & (data[:, 4] != 0)
+        mask = (data[:, 2] != 0) & (data[:, 3] != 0) & (data[:, 4] != 0) # the masking is done w.r.t. MassBH, dotMassBH and SFR values
         data = data[mask]
 
+    # Saving mean and std of massHalo for later plots(for further details, see plots.py)
     mean_halo, std_halo = data[:, 0].mean(), data[:, 0].std()
 
+    # Standardizing data
+    features_to_standardize = [0, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14]
+    data[:, features_to_standardize] = (data[:, features_to_standardize] - np.mean(data[:, features_to_standardize], axis=0)) / (np.std(data[:, features_to_standardize], axis=0))
 
-    data[:, [0, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14]] = (data[:, [0, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14]] - np.mean(
-        data[:, [0, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14]],
-        axis=0)) / (np.std(data[:, [0, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14]], axis=0))
-
+    # Collecting output values
     target = np.array(support_data['M_HI'], dtype=np.float64)[mask] if masking else np.array(support_data['M_HI'], dtype=np.float64)
 
     return data, target, data.shape[1], mean_halo, std_halo
-
-
-
-
-##### VISUALIZATION TOOLS #####
-
-
-def visualization(losses_test, losses_train, R2_train, R2_test):
-    """
-    Visualization of loss of test (y axis) versus number of epoch that refer to that loss (x axis)
-
-    Args:
-        losses_test: array of shape (num_epochs,) containing test error
-        losses_train: array of shape (num_epochs,) containing train error
-    """
-    fig,axs = plt.subplots(1,2, figsize=(15,10))
-    axs[0].plot(range(1,len(losses_train)+1), losses_train, 'bo-', label='Loss(MSE) train')
-    axs[0].plot(range(1,len(losses_test)+1), losses_test, 'ro-', label='Loss(MSE) test')
-    axs[0].set(title='MSE w.r.t. number of epochs',xlabel='epochs',ylabel='test_loss(MSE)')
-    axs[0].grid(visible=True)
-    axs[0].set_yscale('log')
-    axs[0].legend()
-
-    axs[1].plot(range(1,len(R2_train)+1), R2_train, 'bo-', label='R2 score train')
-    axs[1].plot(range(1,len(R2_test)+1), R2_test, 'ro-', label='R2 score test')
-    axs[1].set(title='R2 score w.r.t. number of epochs',xlabel='epochs',ylabel='R2 score')
-    axs[1].grid(visible=True)
-    axs[1].set(ylim = [-1,1])
-    axs[1].legend()
-
-def correlation_plot(predicted, y):
-    
-    fig, ax = plt.subplots(figsize=(12, 8))
-    ax.scatter(10**y, 10**predicted, edgecolors=(0, 0, 0))
-    ax.plot([min(10**y), max(10**y)], [min(10**y), max(10**y)], 'r--', lw=4)
-
-    # Adding lines
-
-    ax.plot([min(10**y), max(10**y)], [min(10**y)*(1+0.34), max(10**y)*(1+0.34)], 'y--', lw=2)
-    ax.plot([min(10**y), max(10**y)], [min(10**y)*(1-0.34), max(10**y)*(1-0.34)], 'y--', lw=2)
-    
-    ax.set_xlabel('Original')
-    ax.set_ylabel('Predicted')
-    ax.set_title('Correlation plot: True values vs Predicted values')
-    ax.set(xscale = 'log', yscale = 'log')
-
-def cloud_of_points(predictions,target,massHalo, mean_halo, std_halo):
-    """
-    Function to plot the MHI against massHalo and compare theroetical results with the predictions of the model."""
-
-    # Converting massHalo values to original scale
-    massHalo = (massHalo*std_halo) + mean_halo
-
-    # COnverting output values to original scale
-
-    predictions = 10 ** predictions
-    target = 10 ** target
-
-    fig, axs = plt.subplots(1,2, figsize = (10,5))
-    axs[0].scatter(massHalo, predictions, alpha = 0.8, marker = '.')
-    axs[0].set_title('Scatter plot using predicted data')
-    axs[0].set(xscale='log', yscale='log', xlim=(1e7, 1e14), ylim=(1e-2, 1e12), xlabel='MassHalo', ylabel='MassHI')
-
-    axs[1].scatter(massHalo,target, alpha = 0.8, marker = '.')
-    axs[1].set_title('Scatter plot using original data')
-    axs[1].set(xscale='log', yscale='log', xlim=(1e7, 1e14), ylim=(1e-2, 1e12), xlabel='MassHalo', ylabel='MassHI' )
 
 
 
