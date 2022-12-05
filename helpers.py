@@ -163,12 +163,20 @@ def visualization(losses_test, losses_train, R2_train, R2_test):
     axs[1].legend()
 
 def correlation_plot(predicted, y):
+    
     fig, ax = plt.subplots(figsize=(12, 8))
     ax.scatter(10**y, 10**predicted, edgecolors=(0, 0, 0))
     ax.plot([min(10**y), max(10**y)], [min(10**y), max(10**y)], 'r--', lw=4)
+
+    # Adding lines
+
+    ax.plot([min(10**y), max(10**y)], [min(10**y)*(1+0.34), max(10**y)*(1+0.34)], 'r--', lw=4)
+    ax.plot([min(10**y), max(10**y)], [min(10**y)*(1-0.34), max(10**y)*(1-0.34)], 'r--', lw=4)
+    
     ax.set_xlabel('Original')
     ax.set_ylabel('Predicted')
     ax.set_title('Correlation plot: True values vs Predicted values')
+    ax.set(xscale = 'log', yscale = 'log')
 
 def cloud_of_points(predictions,target,massHalo, mean_halo, std_halo):
     """
