@@ -7,7 +7,7 @@ import torch.nn.functional as func
 ##### FIRST ARCHITECTURE #####
 
 # The hyperparameters of these architectures (e.g. depth, num layers, activation function) have been decided after optimizing the model using talos library.
-# FOr further details, please refer to talos_optimization
+# For further details, please refer to talos_optimization
 
 class my_FNN_increasing(nn.Module):
 
