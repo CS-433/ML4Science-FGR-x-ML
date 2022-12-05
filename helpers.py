@@ -147,7 +147,7 @@ def get_dataset_LH_fixed(folder_path, features = ['MassHalo','Nsubs','MassBH','d
 
         data[:,idx] = np.array(support_data[feature])
 
-    # Defining mask to avoid having too many zero values. THe mask filter all halos having mass values larger thant 1e10
+    # Defining mask to avoid having too many zero values. The mask filter all halos having mass values larger thant 1e10
     if masking:
         mask = (data[:,2] != 0) & (data[:,3] != 0) & (data[:,4] != 0) # the masking is done w.r.t. MassBH, dotMassBH and SFR values
         data = data[mask]
@@ -213,7 +213,7 @@ def get_dataset_z_fixed(folder_path, features = ['MassHalo','Nsubs','MassBH','do
 
         for idx, feature in enumerate(features):
             if feature in astro_consts:
-                # Since we have observations coming from different simulations, we addfor each datapoint the cosmological and astrophysical constants used during the simulation
+                # Since we have observations coming from different simulations, we add for each datapoint the cosmological and astrophysical constants used during the simulation
                 support_data[feature].extend([params[idx_LH][idx - features.index('Om0')]]*dim)
 
             elif feature == 'VelHalo':
