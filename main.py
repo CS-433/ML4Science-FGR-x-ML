@@ -26,8 +26,7 @@ if __name__ == '__main__':
     # Loading dataset
     
     #X, y, dim_feat = get_single_dataset(params.path_file)
-    X, y, dim_feat, mean_halo, std_halo = get_dataset_LH_fixed('./outputs_test2/LH_0', 
-                                        features = ['MassHalo','Nsubs','MassBH','dotMassBH','SFR','Flux','Density','Temp','VelHalo','z','M_HI'],)
+    X, y, dim_feat, mean_halo, std_halo = get_dataset_LH_fixed('./outputs_test2/LH_0')
 
     # Scaling the output
     y = np.log10(y)

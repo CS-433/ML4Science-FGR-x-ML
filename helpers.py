@@ -25,7 +25,7 @@ class Customized_dataset(Dataset):
 
 ##### HELPER FUNCTIONS #####
 
-def get_single_dataset(path, features = ['MassHalo','Nsubs','MassBH','dotMassBH','SFR','M_HI']):
+def get_single_dataset(path, features = ['MassHalo','Nsubs','MassBH','dotMassBH','SFR','Flux','Density','Temp','VelHalo','z','M_HI'],):
     """
     Function to retrieve a single dataset.
     
@@ -78,7 +78,7 @@ def get_single_dataset(path, features = ['MassHalo','Nsubs','MassBH','dotMassBH'
     return data, target, data.shape[1], mean_halo, std_halo
 
 
-def get_dataset_LH_fixed(folder_path, features = ['MassHalo','Nsubs','MassBH','dotMassBH','SFR','VelHalo','z','M_HI'], masking=True):
+def get_dataset_LH_fixed(folder_path, features = ['MassHalo','Nsubs','MassBH','dotMassBH','SFR','Flux','Density','Temp','VelHalo','z','M_HI'], masking=True):
     """
     Function to retrieve all the datasets related to a fixed simulation.
     
@@ -154,6 +154,76 @@ def get_dataset_LH_fixed(folder_path, features = ['MassHalo','Nsubs','MassBH','d
         target=target[mask]
 
     return data,target,data.shape[1], mean_halo, std_halo
+
+
+def get_dataset_z_fixed(folder_path, features = ['MassHalo','Nsubs','MassBH','dotMassBH','SFR','Flux','Density','Temp','VelHalo', 'M_HI'], z = 0.950, masking=True):
+    """
+    Function to retrieve all the datasets related to a fixed redshift.
+
+    Args:
+        path: path where to find the file
+        features: list of features to extract from the dataset. M_HI must be always passed as last argument
+
+    Returns:
+        data: array of shape (N,len(features)-1)
+        target: array of shape (N,) containing the true output value of each observation
+        shape : scalar corresponding to the number of features
+        mean_halo: float representing the mean of massHalo values
+        std_halo: float representing the standard deviation of massHalo values
+     """
+
+    astro_consts = ['Om0', 'sigma8', 'Asn1', 'Aagn1', 'Asn2', 'Aagn2']
+    params = np.loadtxt('./outputs_test2/params_IllustrisTNG.txt')
+    support_data = {}
+
+    features.extend(astro_consts)
+
+    for feature in features:
+        # Initializing empty list
+        support_data[feature] = []
+
+    name_LH_folders = [LH_folder for LH_folder in listdir(folder_path) if LH_folder.startswith('LH')]
+
+
+    for idx_LH,name_LH_folder in enumerate(name_LH_folders):
+        sim_file = 'MHI_LH'+ str(idx_LH) + '_z=' + '{:.3f}'.format(z) + '.hdf5'
+        print('idx:', idx_LH)
+        print('NameLH: ', name_LH_folder)
+        print('folder_path' + '/' + name_LH_folder + '/' + sim_file)
+        f = h5py.File(folder_path + '/' + name_LH_folder + '/' + sim_file)
+
+        dim = f['MassHalo'][:].shape[0]
+
+        for idx, feature in enumerate(features):
+            if feature in astro_consts:
+                support_data[feature].extend([params[idx_LH][idx - features.index('Om0')]]*dim)
+            elif feature == 'VelHalo':
+                support_data[feature].extend(np.linalg.norm(f[feature][:], axis=1))
+            else:
+                support_data[feature].extend(f[feature][:])
+
+    data = np.empty((len(support_data['MassHalo']),len(features)-1))
+
+    features.remove('M_HI')
+    for idx,feature in enumerate(features):
+        data[:,idx] = np.array(support_data[feature])
+
+    if masking:
+        mask = (data[:, 2] != 0) & (data[:, 3] != 0) & (data[:, 4] != 0)
+        data = data[mask]
+
+    mean_halo, std_halo = data[:, 0].mean(), data[:, 0].std()
+
+
+    data[:, [0, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14]] = (data[:, [0, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14]] - np.mean(
+        data[:, [0, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14]],
+        axis=0)) / (np.std(data[:, [0, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14]], axis=0))
+
+    target = np.array(support_data['M_HI'], dtype=np.float64)[mask] if masking else np.array(support_data['M_HI'], dtype=np.float64)
+
+    return data, target, data.shape[1], mean_halo, std_halo
+
+
 
 
 ##### VISUALIZATION TOOLS #####
