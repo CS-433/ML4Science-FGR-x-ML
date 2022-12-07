@@ -276,7 +276,7 @@ def get_all_dataset(folder_path, features = ['MassHalo','Nsubs','MassBH','dotMas
         # After retrieving the name of all the simulations, we create the name of the files we are interesting in by appending the redshift to the name of the simulation
         name_files = [file for file in listdir(folder_path + '/' + name_LH_folder) if file.startswith('MHI')]
 
-        for idx, name_file in enumerate(name_files):
+        for idx_z, name_file in enumerate(name_files):
             # Importing data from the current file
             f = h5py.File(folder_path + '/' + name_LH_folder + '/' + name_file)
             dim = f['MassHalo'][:].shape[0]
@@ -292,7 +292,7 @@ def get_all_dataset(folder_path, features = ['MassHalo','Nsubs','MassBH','dotMas
 
                 elif feature == 'z':
                     # Since we have observations with different redshifts, we add this value to the feature we consider to train the model
-                    support_data[feature].extend([z[idx]] * dim)
+                    support_data[feature].extend([z[idx_z]] * dim)
 
                 else:
                     support_data[feature].extend(f[feature][:])
