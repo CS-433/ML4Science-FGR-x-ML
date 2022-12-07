@@ -254,6 +254,83 @@ def get_dataset_z_fixed(folder_path, features = ['MassHalo','Nsubs','MassBH','do
 
 
 
+def get_all_dataset(folder_path, features = ['MassHalo','Nsubs','MassBH','dotMassBH','SFR','Flux','Density','Temp','VelHalo', 'z', 'M_HI'], masking=True):
+
+    # In addition to the input features, we also consider cosmological and astrophysical constants used to obtain the simulated data collected in the files in folder path
+    astro_consts = ['Om0', 'sigma8', 'Asn1', 'Aagn1', 'Asn2', 'Aagn2']
+    z = [0.77, 0.86, 0.95, 1.05, 1.15, 1.25, 1.36, 1.48, 1.6, 1.73, 1.86, 2, 2.15, 2.3, 2.46, 2.63]
+    # We load the above mentioned constants
+    params = np.loadtxt('./outputs_test2/params_IllustrisTNG.txt')
+    features.extend(astro_consts)
+
+    support_data = {}
+
+    for feature in features:
+        # Initializing empty list
+        support_data[feature] = []
+
+    # Saving all the file names corresponding to simulations
+    name_LH_folders = [LH_folder for LH_folder in listdir(folder_path) if LH_folder.startswith('LH')]
+
+    for idx_LH, name_LH_folder in enumerate(name_LH_folders):
+        # After retrieving the name of all the simulations, we create the name of the files we are interesting in by appending the redshift to the name of the simulation
+        name_files = [file for file in listdir(folder_path + '/' + name_LH_folder) if file.startswith('MHI')]
+
+        for idx, name_file in enumerate(name_files):
+            # Importing data from the current file
+            f = h5py.File(folder_path + '/' + name_LH_folder + '/' + name_file)
+            dim = f['MassHalo'][:].shape[0]
+
+            for idx, feature in enumerate(features):
+                if feature in astro_consts:
+                    # Since we have observations coming from different simulations, we add for each datapoint the cosmological and astrophysical constants used during the simulation
+                    support_data[feature].extend([params[idx_LH][idx - features.index('Om0')]] * dim)
+
+                elif feature == 'VelHalo':
+                    # Computing the euclidean norm of the velocity
+                    support_data[feature].extend(np.linalg.norm(f[feature][:], axis=1))
+
+                elif feature == 'z':
+                    # Since we have observations with different redshifts, we add this value to the feature we consider to train the model
+                    support_data[feature].extend([z[idx]] * dim)
+
+                else:
+                    support_data[feature].extend(f[feature][:])
+            # Closing file
+            f.close()
+
+
+    # Defining data
+    data = np.empty((len(support_data['MassHalo']), len(features) - 1))
+
+    features.remove('M_HI')
+
+    # Appending all the data from different files in the same numpy array
+    for idx, feature in enumerate(features):
+        data[:, idx] = np.array(support_data[feature])
+
+    # Defining mask to avoid having too many zero values. THe mask filter all halos having mass values larger thant 1e10
+    if masking:
+        mask = (data[:, 2] != 0) & (data[:, 3] != 0) & (
+                    data[:, 4] != 0)  # the masking is done w.r.t. MassBH, dotMassBH and SFR values
+        data = data[mask]
+
+    # Saving mean and std of massHalo for later plots(for further details, see plots.py)
+    mean_halo, std_halo = data[:, 0].mean(), data[:, 0].std()
+
+    # Standardizing data
+    features_to_standardize = [0, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15]
+    data[:, features_to_standardize] = (data[:, features_to_standardize] - np.mean(data[:, features_to_standardize],
+                                                                                   axis=0)) / (
+                                           np.std(data[:, features_to_standardize], axis=0))
+
+    # Collecting output values
+    target = np.array(support_data['M_HI'], dtype=np.float64)[mask] if masking else np.array(support_data['M_HI'],
+                                                                                             dtype=np.float64)
+
+    return data, target, data.shape[1], mean_halo, std_halo
+
+
 
 
 
