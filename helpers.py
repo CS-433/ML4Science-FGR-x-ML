@@ -2,11 +2,16 @@
 
 import torch 
 import torch.nn as nn
-from torch.utils.data import Dataset
+from torch.utils.data import Dataset, DataLoader
+from torch import optim
+from torch.optim.lr_scheduler import ReduceLROnPlateau
 import numpy as np
 import matplotlib.pyplot as plt
 import h5py
 from os import listdir
+import gc
+import params
+from neural_network import *
 
 # Defining useful class to convert data in a format accepted by Pytorch. 
 
@@ -255,6 +260,21 @@ def get_dataset_z_fixed(folder_path, features = ['MassHalo','Nsubs','MassBH','do
 
 
 def get_all_dataset(folder_path, features = ['MassHalo','Nsubs','MassBH','dotMassBH','SFR','Flux','Density','Temp','VelHalo', 'z', 'M_HI'], masking=True):
+    """
+    Function to retrieve all the data obtained from the simulations.
+    
+    Args:
+        path: string indicating where to find the file
+        features: list of features to extract from the dataset. M_HI must be always passed as last argument
+        masking : boolean indicating whether to remove zeros values or not. If true, the model is trained only considering halos whose mass is higher than 1e10
+    
+    Returns:
+        data: array of shape (N,len(features)-1)
+        target: array of shape (N,) containing the true output value of each observation
+        shape : scalar corresponding to the number of features
+        mean_halo: float representing the mean of massHalo values
+        std_halo: float representing the standard deviation of massHalo values
+     """
 
     # In addition to the input features, we also consider cosmological and astrophysical constants used to obtain the simulated data collected in the files in folder path
     astro_consts = ['Om0', 'sigma8', 'Asn1', 'Aagn1', 'Asn2', 'Aagn2']
@@ -329,6 +349,102 @@ def get_all_dataset(folder_path, features = ['MassHalo','Nsubs','MassBH','dotMas
                                                                                              dtype=np.float64)
 
     return data, target, data.shape[1], mean_halo, std_halo
+
+
+
+def optimization_using_talos(X_train, y_train, X_test, y_test, p):
+    """
+    Function to perform cross validation on the neural network to find the best hyperparameters.
+    
+    Args:
+        X_train : numpy array of size (N,D) containing train data
+        y_train : numpy array of size (N,) containing train label
+        X_test  : numpy array of size (K,D) containing test data
+        y_test  : numpy array of size (K,D) containing test label
+        p : dictionary containing the hyperparameters used to define the network inside the function
+        
+    Returns:
+        model : trained model
+        parameters: model parameters
+    """
+
+    # To better train the model, instead of using the whole train data at the same time, we divide it in batches using a fixed batch size
+    # Converting data into pytorch dataset object
+    gc.collect()
+
+    train_dataset = Customized_dataset(X_train,y_train)
+    test_dataset = Customized_dataset(X_test,y_test)
+
+    # Divide train and test data into iterable batches
+    train_loader = DataLoader(dataset=train_dataset,batch_size=params.batch_size, shuffle=True,
+                                num_workers=2, pin_memory=torch.cuda.is_available())
+
+    test_loader = DataLoader(dataset=test_dataset,batch_size=params.batch_size, shuffle=True,
+                                pin_memory=torch.cuda.is_available())
+    
+    del train_dataset
+    del test_dataset
+
+    gc.collect()
+
+    # Initializing the model
+    model = customized_increasing_NN(p,X_train.shape[1],params.dtype)
+    if torch.cuda.is_available():
+        model = model.cuda()
+
+    # Initializing tools for learning process
+    criterion = nn.MSELoss()
+    optimizer = optim.SGD(model.parameters(), lr = p['lr'])
+    scheduler = ReduceLROnPlateau(optimizer = optimizer, mode = 'min', factor = 0.1, patience = 20, min_lr=1e-12, verbose=False)
+    
+    # Initializing history of the net
+    model.init_history()
+
+    # Training the model
+    model.train()
+
+    for _ in range(params.epochs):
+
+        # Defining support data structure
+        loss_train, loss_test = [], []
+
+        for (data,target) in train_loader:
+
+            # Moving test data to GPU if possible
+            if torch.cuda.is_available():
+                data, target = data.cuda(), target.cuda()
+
+            # Training and updating weights
+            optimizer.zero_grad()
+            output = model(data)
+            loss = criterion(output, target)
+            loss.backward()
+            optimizer.step()
+            scheduler.step(loss.item())
+            # Storing current loss value in a provisional list
+            loss_train.append(loss.item())
+        
+        # Storing the current loss value using talos history
+        model.append_loss(np.mean(loss_train))
+
+        # Using test data
+        for (data,target) in test_loader:
+
+            # Moving test data to GPU if possible
+            if torch.cuda.is_available():
+                data, target = data.cuda(), target.cuda()
+
+            with torch.no_grad():
+                output = model(data)
+                loss = criterion(output, target)
+                # Storing current loss value in a provisional list
+                loss_test.append(loss.item())
+                
+        # Storing the current loss value using talos history
+        model.append_val_loss(np.mean(loss_test))
+
+    return model, model.parameters()
+
 
 
 
