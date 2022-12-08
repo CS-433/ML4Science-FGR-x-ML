@@ -1,6 +1,6 @@
 # ASTROLAB
-In the repository you can find the code we used for a project proposed by [ASTROLAB](https://www.epfl.ch/labs/lastro/) at EPFL, involved in the global project [HIRAX](https://hirax.ukzn.ac.za/) in which our project is used. The goal of this project was to train a model able to predict the Mass of Hydrogen in galaxies based on some other features such as Mass of halos, mass of black holes in the halo, Temperature, Density, SFR (Star Formation Rate),...  
-To solve this problem, we trained a Fully-Connected Neural Network using `pytorch` able to predict with good precision our target. After an optimization of the architecture performed using `talos`,  we ended up with the following network:
+In the repository you can find the code we used for a project proposed by [ASTROLAB](https://www.epfl.ch/labs/lastro/) at EPFL in collaboration with the global project [HIRAX](https://hirax.ukzn.ac.za/). The goal of this project was to train a model able to predict the Mass of Hydrogen in galaxies based on some other features such as Mass of halos, mass of black holes in the halo, Temperature, Density, SFR (Star Formation Rate),...  
+To solve this problem, we trained a Fully-Connected Neural Network using `pytorch`. After optmizing the architecture using `talos`,  we ended up with the following network:
 
 The supervisor of the project was Dr. Michele Bianco.
 
