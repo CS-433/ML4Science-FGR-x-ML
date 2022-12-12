@@ -1,4 +1,5 @@
 .ipynb_checkpoints/
+._pycache_/
 .DS_Store/
 .data/
 .hw2-Copy
