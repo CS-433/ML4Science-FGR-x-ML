@@ -36,22 +36,28 @@ class customized_increasing_NN(nn.Module, talos.utils.TorchHistory):
 # The hyperparameters of these architectures (e.g. depth, num layers, activation function, dropout rate) have been decided after optimizing the model using talos library.
 # For further details, please refer to talos_optimization
 
+
+
 class my_FNN_increasing(nn.Module):
 
-    " Class to define the architecture"
+    """Class to define the architecture. The hyperparameters chosen after talos optimization are:
+    {'nr_hidden_layer:3, hidden_layers_size:16, dropout_rate:0.1, lr:0.1}
+    """
 
     def __init__(self,num_feature, dtype):
         # Importing methods and attributes from Module
         super().__init__()
         # Generating and initializing each layer
-        self.l1 = nn.Linear(num_feature,64,dtype=dtype)
+        self.l1 = nn.Linear(num_feature,16,dtype=dtype)
         self.reLU1 = nn.ReLU()
-        self.l2 = nn.Linear(64,128,dtype=dtype)
+        self.l2 = nn.Linear(16,32,dtype=dtype)
         self.reLU2 = nn.ReLU()
-        self.l3 = nn.Linear(128,256,dtype=dtype)
+        self.l3 = nn.Linear(32,64,dtype=dtype)
         self.reLU3 = nn.ReLU()
-        self.l4 = nn.Linear(256,1,dtype=dtype)
-        self.dropout = nn.Dropout(0.25)
+        self.l4 = nn.Linear(64,128,dtype=dtype)
+        self.relu4 == nn.ReLU()
+        self.l5 = nn.Linear(128,1,dtype=dtype)
+        self.dropout = nn.Dropout(0.1)
 
     def forward(self,input):
 
@@ -67,5 +73,8 @@ class my_FNN_increasing(nn.Module):
         out = self.reLU3(out)
         out = self.dropout(out)
         out = self.l4(out)
+        out = self.reLU4(out)
+        out = self.dropout(out)
+        out = self.l5(out)
   
         return out
