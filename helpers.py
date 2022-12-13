@@ -37,7 +37,7 @@ class Customized_dataset(Dataset):
 
 ##### HELPER FUNCTIONS #####
 
-def get_single_dataset(path, features = ['MassHalo','Nsubs','MassBH','dotMassBH','SFR','Flux','Density','Temp','VelHalo','z','M_HI'], masking=True):
+def get_single_dataset(path, features = ['MassHalo','Nsubs','MassBH','dotMassBH','SFR','Flux','Density','Temp','VelHalo','M_HI'], masking=True):
     """
     Function to retrieve a single dataset. The corresponding simulation (LH) and redshift (z) are given as input in the path string.
     
@@ -58,10 +58,10 @@ def get_single_dataset(path, features = ['MassHalo','Nsubs','MassBH','dotMassBH'
     f = h5py.File(path)
 
     # Creating data structure to later store the data
-    data = np.empty((np.sum(mask), len(features) -1) )
+    data = np.empty((f['M_HI'][:].shape[0], len(features) -1) )
 
     # Collecting data
-    for idx,feature in features[:-1]:
+    for idx,feature in enumerate(features[:-1]):
 
         if feature == 'VelHalo':
             # Computing the euclidean norm of the velocity
@@ -78,12 +78,14 @@ def get_single_dataset(path, features = ['MassHalo','Nsubs','MassBH','dotMassBH'
     mean_halo, std_halo = data[:,0].mean(), data[:,0].std()
 
     # Standardizing data
-    features_to_standardize = [0,2,3,4,5,6,7,8,9]
+    features_to_standardize = [0,2,3,4,5,6,7,8]
     data[:, features_to_standardize] = (data[:, features_to_standardize] - np.mean(data[:, features_to_standardize], axis=0)) / np.std(data[:, features_to_standardize], axis=0)
 
     # Collecting output values
-    target = f['M_HI'][mask] if masking else f['M_HI'][:]
-    target.dtype = np.float64
+    target = np.array(f['M_HI'][:], dtype = np.float64)
+    
+    if masking:
+        target=target[mask]
 
     # Closing file
     f.close()
