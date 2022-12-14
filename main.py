@@ -37,11 +37,7 @@ if __name__ == '__main__':
     X_train,X_test,y_train,y_test = train_test_split(X, y, test_size=0.25, random_state=2022) # we fix the random state for reproducibility purpose
     X_test,X_val,y_test,y_val = train_test_split(X_test, y_test, test_size=0.2, random_state=2022)
 
-    a = customized_increasing_NN({'dropout':0.1, 'activation':nn.ReLU(), 'nr_layers':4,'hidden_layer_size':32},X_train.shape[0],params.dtype)
-    print(a)
-    raise Exception
     # Standardizing data
-
     mean_train, std_train = X_train.mean(axis=0), X_train.std(axis=0)
     X_test, X_train = (X_test - mean_train) / (std_train) , (X_train - mean_train) / (std_train)
     X_val = (X_val - mean_train) / std_train
