@@ -14,7 +14,7 @@ p = {'nr_layers':[3,4],
      'hidden_layer_size': [16,32,64],
      'activation': [nn.ReLU(), nn.LeakyReLU()],
      'dropout': [0.05, 0.1],
-     'lr': [1e-3,1e-4]}
+     'lr': [1e-2,1e-3]}
 
 ##### MAIN SCRIPT TO RUN #####
 
