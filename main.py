@@ -34,8 +34,8 @@ if __name__ == '__main__':
     y = np.log10(y)
 
     # Splitting data into train and test set: 75 % train, 20% test, 5% validation
-    X_train,X_test,y_train,y_test = train_test_split(X, y, test_size=0.25, random_state=2022) # we fix the random state for reproducibility purpose
-    X_test,X_val,y_test,y_val = train_test_split(X_test, y_test, test_size=0.2, random_state=2022)
+    X_train,X_test,y_train,y_test = train_test_split(X, y, test_size=0.25, random_state=42) # we fix the random state for reproducibility purpose
+    X_test,X_val,y_test,y_val = train_test_split(X_test, y_test, test_size=0.2, random_state=42)
 
     # Standardizing data
     mean_train, std_train = X_train.mean(axis=0), X_train.std(axis=0)

@@ -10,11 +10,11 @@ import pandas as pd
 ##### GLOBAL ENVIRONMENT #####
 
 # Defining parameters to test during optimization
-p = {'nr_layers':[2,3,4],
-     'hidden_layer_size': [16,32,64,128],
+p = {'nr_layers':[3,4],
+     'hidden_layer_size': [16,32,64],
      'activation': [nn.ReLU(), nn.LeakyReLU()],
      'dropout': [0.05, 0.1],
-     'lr': [1e-2,1e-3,1e-4]}
+     'lr': [1e-3,1e-4]}
 
 ##### MAIN SCRIPT TO RUN #####
 
@@ -28,7 +28,7 @@ if __name__ == '__main__':
     y = np.log10(y)
 
     # Splitting data into train and test set: 75 % train, 25%
-    X_train,X_test,y_train,y_test = train_test_split(X, y, test_size=0.25, random_state=2022) # we fix the random state for reproducibility purpose
+    X_train,X_test,y_train,y_test = train_test_split(X, y, test_size=0.25, random_state=42) # we fix the random state for reproducibility purpose
 
     # Standardizing data
     mean_train, std_train = X_train.mean(axis=0), X_train.std(axis=0)
@@ -36,7 +36,7 @@ if __name__ == '__main__':
 
     # Computing hyperparameters tuning using talos library
     scan_object = talos.Scan(x=X_train, y=y_train, x_val=X_test, y_val=y_test, params=p, model=optimization_using_talos,
-        experiment_name='validation_hyperparameters', fraction_limit = 0.008)
+        experiment_name='validation_hyperparameters')
 
     # Be sure that the folder validation_hyperparameters only has one file inside. 
     # The following lines add average train and test loss over the epochs for each model to the result created by talos
