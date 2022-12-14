@@ -22,7 +22,7 @@ if __name__ == '__main__':
     
     # Loading dataset
     # The function to load data depends on the redshift(s) and simulation(s) one is considering
-    X, y, dim_feat, mean_halo, std_halo = get_dataset_LH_fixed('./outputs_test2/LH_0')
+    X, y, dim_feat= get_dataset_LH_fixed('./outputs_test2/LH_0')
 
     # Scaling the output. By computing the logarithmic transformation, we want that our network learns the order of the mass and as many digits as possible regarding its magnitude
     y = np.log10(y)
