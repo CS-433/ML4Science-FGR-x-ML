@@ -74,12 +74,8 @@ def get_single_dataset(path, features = ['MassHalo','Nsubs','MassBH','dotMassBH'
         mask = (data[:,2] != 0) & (data[:,3] != 0) & (data[:,4] != 0) # the masking is done w.r.t. MassBH, dotMassBH and SFR values
         data = data[mask]
 
-    # Saving mean and std of massHalo for later plots(for further details, see plots.py)
-    mean_halo, std_halo = data[:,0].mean(), data[:,0].std()
-
-    # Standardizing data
-    features_to_standardize = [0,2,3,4,5,6,7,8]
-    data[:, features_to_standardize] = (data[:, features_to_standardize] - np.mean(data[:, features_to_standardize], axis=0)) / np.std(data[:, features_to_standardize], axis=0)
+    # Computing log transform
+    data[:,[0,7,8]] = np.log(1 + data[:,[0,7,8]])
 
     # Collecting output values
     target = np.array(f['M_HI'][:], dtype = np.float64)
@@ -90,7 +86,7 @@ def get_single_dataset(path, features = ['MassHalo','Nsubs','MassBH','dotMassBH'
     # Closing file
     f.close()
 
-    return data, target, data.shape[1], mean_halo, std_halo
+    return data, target, data.shape[1]
 
 
 def get_dataset_LH_fixed(folder_path, features = ['MassHalo','Nsubs','MassBH','dotMassBH','SFR','Flux','Density','Temp','VelHalo','z','M_HI'], masking=True):
@@ -159,12 +155,8 @@ def get_dataset_LH_fixed(folder_path, features = ['MassHalo','Nsubs','MassBH','d
         mask = (data[:,2] != 0) & (data[:,3] != 0) & (data[:,4] != 0) # the masking is done w.r.t. MassBH, dotMassBH and SFR values
         data = data[mask]
 
-    # Saving mean and std of massHalo for later plots(for further details, see plots.py) 
-    mean_halo, std_halo = data[:,0].mean(), data[:,0].std()
-
-    # Standardizing data
-    features_to_standardize = [0,2,3,4,5,6,7,8,9]
-    data[:,features_to_standardize] = (data[:,features_to_standardize] - np.mean(data[:,features_to_standardize], axis=0)) / (np.std(data[:,features_to_standardize], axis=0))
+    # Computing log transformation
+    data[:,[0,7,8]] = np.log(1 + data[:,[0,7,8]])
 
     # Collecting output values
     target = np.array(support_data['M_HI'], dtype = np.float64)
@@ -172,7 +164,7 @@ def get_dataset_LH_fixed(folder_path, features = ['MassHalo','Nsubs','MassBH','d
     if masking:
         target=target[mask]
 
-    return data,target,data.shape[1], mean_halo, std_halo
+    return data,target,data.shape[1]
 
 
 def get_dataset_z_fixed(folder_path, features = ['MassHalo','Nsubs','MassBH','dotMassBH','SFR','Flux','Density','Temp','VelHalo', 'M_HI'], z = 0.950, masking=True):
@@ -247,17 +239,13 @@ def get_dataset_z_fixed(folder_path, features = ['MassHalo','Nsubs','MassBH','do
         mask = (data[:, 2] != 0) & (data[:, 3] != 0) & (data[:, 4] != 0) # the masking is done w.r.t. MassBH, dotMassBH and SFR values
         data = data[mask]
 
-    # Saving mean and std of massHalo for later plots(for further details, see plots.py)
-    mean_halo, std_halo = data[:, 0].mean(), data[:, 0].std()
-
-    # Standardizing data
-    features_to_standardize = [0, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14]
-    data[:, features_to_standardize] = (data[:, features_to_standardize] - np.mean(data[:, features_to_standardize], axis=0)) / (np.std(data[:, features_to_standardize], axis=0))
+    # Computing log transformation
+    data[:,[0,7,8]] = np.log(1 + data[:,[0,7,8]])
 
     # Collecting output values
     target = np.array(support_data['M_HI'], dtype=np.float64)[mask] if masking else np.array(support_data['M_HI'], dtype=np.float64)
 
-    return data, target, data.shape[1], mean_halo, std_halo
+    return data, target, data.shape[1]
 
 
 
@@ -337,20 +325,14 @@ def get_all_dataset(folder_path, features = ['MassHalo','Nsubs','MassBH','dotMas
                     data[:, 4] != 0)  # the masking is done w.r.t. MassBH, dotMassBH and SFR values
         data = data[mask]
 
-    # Saving mean and std of massHalo for later plots(for further details, see plots.py)
-    mean_halo, std_halo = data[:, 0].mean(), data[:, 0].std()
-
-    # Standardizing data
-    features_to_standardize = [0, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15]
-    data[:, features_to_standardize] = (data[:, features_to_standardize] - np.mean(data[:, features_to_standardize],
-                                                                                   axis=0)) / (
-                                           np.std(data[:, features_to_standardize], axis=0))
+    # Computing log transformation
+    data[:,[0,7,8]] = np.log(1 + data[:,[0,7,8]])
 
     # Collecting output values
     target = np.array(support_data['M_HI'], dtype=np.float64)[mask] if masking else np.array(support_data['M_HI'],
                                                                                              dtype=np.float64)
 
-    return data, target, data.shape[1], mean_halo, std_halo
+    return data, target, data.shape[1]
 
 
 

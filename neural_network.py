@@ -20,15 +20,15 @@ class customized_increasing_NN(nn.Module, talos.utils.TorchHistory):
         self.starting_linear = nn.Linear(num_features, p['hidden_layer_size'], dtype=dtype)
         self.__nr_layers = p['nr_layers']
         self.__hidden_layer_size = p['hidden_layer_size']
-        self.ending_layer = nn.Linear((self.__nr_layers)*self.__hidden_layer_size, 1, dtype=dtype)
+        self.ending_layer = nn.Linear((2**(self.__nr_layers-1))*(self.__hidden_layer_size), 1, dtype=dtype)
     
     def forward(self,input):
 
         "Function to implement the forward pass"
 
         out = self.dropout(self.activation(self.starting_linear(input)))
-        for idx_layer in range(1,self.__nr_layers):
-            self.linear = nn.Linear(self.__hidden_layer_size*(idx_layer), self.__hidden_layer_size*(idx_layer+1), dtype = params.dtype).cuda()
+        for idx_layer in range(0,self.__nr_layers-1):
+            self.linear = nn.Linear(self.__hidden_layer_size*(2**idx_layer), self.__hidden_layer_size*(2**(idx_layer+1)), dtype = params.dtype).cuda()
             out = self.dropout(self.activation(self.linear(out)))
         out = self.ending_layer(out)
         return out
@@ -38,10 +38,10 @@ class customized_increasing_NN(nn.Module, talos.utils.TorchHistory):
 
 
 
-class my_FNN_increasing(nn.Module):
+class my_FNN_increasing_masking(nn.Module):
 
     """Class to define the architecture. The hyperparameters chosen after talos optimization are:
-    {'nr_hidden_layer:3, hidden_layers_size:16, dropout_rate:0.1, lr:0.1}
+    {'nr_hidden_layer:4, hidden_layers_size:16, dropout_rate:0.1, lr:0.1} -> for masking
     """
 
     def __init__(self,num_feature, dtype):
@@ -54,9 +54,9 @@ class my_FNN_increasing(nn.Module):
         self.reLU2 = nn.ReLU()
         self.l3 = nn.Linear(32,64,dtype=dtype)
         self.reLU3 = nn.ReLU()
-        self.l4 = nn.Linear(64,128,dtype=dtype)
+        self.l4 = nn.Linear(64,128,dtype=dtype) 
         self.relu4 == nn.ReLU()
-        self.l5 = nn.Linear(128,1,dtype=dtype)
+        self.l5 = nn.Linear(128,1,dtype=dtype) 
         self.dropout = nn.Dropout(0.1)
 
     def forward(self,input):

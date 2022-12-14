@@ -27,8 +27,8 @@ if __name__ == '__main__':
     gc.collect()
     
     # Loading dataset
-    # The function to load data depends on the redshift(s) and simulation(s) one is considering
-    X, y, dim_feat, mean_halo, std_halo = get_dataset_LH_fixed('./outputs_test2/LH_0')
+    # The function to load data depends on the redshift(s) and simulation(s) one is considering -> here z = 0.95,
+    X, y, dim_feat = get_single_dataset('./outputs_test2/LH_0/MHI_LH0_z=0.950.hdf5', masking=True)
 
     # Scaling the output. By computing the logarithmic transformation, we want that our network learns the order of the mass and as many digits as possible regarding its magnitude
     y = np.log10(y)
@@ -36,6 +36,15 @@ if __name__ == '__main__':
     # Splitting data into train and test set: 75 % train, 20% test, 5% validation
     X_train,X_test,y_train,y_test = train_test_split(X, y, test_size=0.25, random_state=2022) # we fix the random state for reproducibility purpose
     X_test,X_val,y_test,y_val = train_test_split(X_test, y_test, test_size=0.2, random_state=2022)
+
+    a = customized_increasing_NN({'dropout':0.1, 'activation':nn.ReLU(), 'nr_layers':4,'hidden_layer_size':32},X_train.shape[0],params.dtype)
+    print(a)
+    raise Exception
+    # Standardizing data
+
+    mean_train, std_train = X_train.mean(axis=0), X_train.std(axis=0)
+    X_test, X_train = (X_test - mean_train) / (std_train) , (X_train - mean_train) / (std_train)
+    X_val = (X_val - mean_train) / std_train
 
     # Converting data into pytorch dataset object
     train_dataset = Customized_dataset(X_train,y_train)
@@ -90,7 +99,8 @@ if __name__ == '__main__':
         current_epoch=0
 
         # Importing model and move it to GPU (if available)
-        model = my_FNN_increasing(dim_feat,params.dtype)
+        if params.masking == True:
+            model = my_FNN_increasing_masking(dim_feat,params.dtype)
         if(torch.cuda.is_available()): # for the case of laptop with local GPU
             model = model.cuda()
 
@@ -106,7 +116,8 @@ if __name__ == '__main__':
         # Resuming the training from last_model
         PATH = './checkpoints/last_model.pt'
 
-        model = my_FNN_increasing(dim_feat,params.dtype)
+        if params.masking == True:
+            model = my_FNN_increasing_masking(dim_feat,params.dtype)
 
         # Defining optimizer
         optimizer = optim.SGD(model.parameters(), lr=params.lr)
@@ -271,7 +282,8 @@ if __name__ == '__main__':
     PATH = './checkpoints/best_model.pt' 
 
     # Defining the model
-    best_model = my_FNN_increasing(dim_feat,params.dtype)
+    if params.masking==True:
+        best_model = my_FNN_increasing_masking(dim_feat,params.dtype)
 
     checkpoint = torch.load(PATH)
 
@@ -292,7 +304,7 @@ if __name__ == '__main__':
 
     # Visualizing cloud of points to see if the network performs better than the empirical approximation (logarithmic function) so far used in the field
     cloud_of_points(output_validation.cpu().detach().numpy(), y_val.cpu().detach().numpy(), 
-                    X_val[:,0].cpu().detach().numpy(), mean_halo, std_halo)
+                    X_val[:,0].cpu().detach().numpy(), mean_train[0], std_train[0])
     plt.savefig('./checkpoints/cloud_of_points.png', bbox_inches='tight')
 
     plt.clf()
