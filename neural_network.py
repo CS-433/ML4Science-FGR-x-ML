@@ -55,7 +55,7 @@ class my_FNN_increasing_masking(nn.Module):
         self.l3 = nn.Linear(32,64,dtype=dtype)
         self.reLU3 = nn.ReLU()
         self.l4 = nn.Linear(64,128,dtype=dtype) 
-        self.relu4 == nn.ReLU()
+        self.reLU4 = nn.ReLU()
         self.l5 = nn.Linear(128,1,dtype=dtype) 
         self.dropout = nn.Dropout(0.1)
 
