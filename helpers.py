@@ -50,8 +50,6 @@ def get_single_dataset(path, features = ['MassHalo','Nsubs','MassBH','dotMassBH'
         data: array of shape (N,len(features)-1)
         target: array of shape (N,) containing the true output value of each observation
         shape : scalar corresponding to the number of features
-        mean_halo: float representing the mean of massHalo values
-        std_halo: float representing the standard deviation of massHalo values
      """
 
     # Importing the file 
@@ -103,8 +101,6 @@ def get_dataset_LH_fixed(folder_path, features = ['MassHalo','Nsubs','MassBH','d
         data: array of shape (N,len(features)-1)
         target: array of shape (N,) containing the true output value of each observation
         shape : scalar corresponding to the number of features
-        mean_halo: float representing the mean of massHalo values
-        std_halo: float representing the standard deviation of massHalo values
      """
 
     # Defining all the redshifts in our simulation
@@ -181,8 +177,6 @@ def get_dataset_z_fixed(folder_path, features = ['MassHalo','Nsubs','MassBH','do
         data: array of shape (N,len(features)-1)
         target: array of shape (N,) containing the true output value of each observation
         shape : scalar corresponding to the number of features
-        mean_halo: float representing the mean of massHalo values
-        std_halo: float representing the standard deviation of massHalo values
      """
 
     # In addition to the input features, we also consider cosmological and astrophysical constants used to obtain the simulated data collected in the files in folder path
@@ -262,8 +256,6 @@ def get_all_dataset(folder_path, features = ['MassHalo','Nsubs','MassBH','dotMas
         data: array of shape (N,len(features)-1)
         target: array of shape (N,) containing the true output value of each observation
         shape : scalar corresponding to the number of features
-        mean_halo: float representing the mean of massHalo values
-        std_halo: float representing the standard deviation of massHalo values
      """
 
     # In addition to the input features, we also consider cosmological and astrophysical constants used to obtain the simulated data collected in the files in folder path
