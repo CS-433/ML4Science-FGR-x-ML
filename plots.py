@@ -63,7 +63,7 @@ def cloud_of_points(predictions,target,massHalo, mean_halo, std_halo):
     """
 
     # Converting massHalo values to original scale
-    massHalo = (massHalo*std_halo) + mean_halo
+    massHalo = np.exp((massHalo*std_halo) + mean_halo)
 
     # Converting output values to original scale
     predictions = 10 ** predictions -1
