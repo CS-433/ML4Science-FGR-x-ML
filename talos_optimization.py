@@ -25,7 +25,7 @@ if __name__ == '__main__':
     X, y, dim_feat= get_dataset_LH_fixed('./outputs_test2/LH_0')
 
     # Scaling the output. By computing the logarithmic transformation, we want that our network learns the order of the mass and as many digits as possible regarding its magnitude
-    y = np.log10(y)
+    y = np.log10(1 + y)
 
     # Splitting data into train and test set: 75 % train, 25%
     X_train,X_test,y_train,y_test = train_test_split(X, y, test_size=0.25, random_state=42) # we fix the random state for reproducibility purpose

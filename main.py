@@ -30,8 +30,8 @@ if __name__ == '__main__':
     # The function to load data depends on the redshift(s) and simulation(s) one is considering -> here z = 0.95,
     X, y, dim_feat = get_single_dataset('./outputs_test2/LH_0/MHI_LH0_z=0.950.hdf5', masking=True)
 
-    # Scaling the output. By computing the logarithmic transformation, we want that our network learns the order of the mass and as many digits as possible regarding its magnitude
-    y = np.log10(y)
+    # Scaling the output. By computing the logarithmic transformation, we want that our network learns the order of the mass and as many digits as possible regarding its magnitude. Notice that we add 1 to the target in order to avoid problems with small values
+    y = np.log10(1 + y)
 
     # Splitting data into train and test set: 75 % train, 20% test, 5% validation
     X_train,X_test,y_train,y_test = train_test_split(X, y, test_size=0.25, random_state=42) # we fix the random state for reproducibility purpose

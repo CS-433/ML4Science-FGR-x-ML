@@ -40,12 +40,12 @@ def correlation_plot(predicted, y):
     """
     
     fig, ax = plt.subplots(figsize=(12, 8))
-    ax.scatter(10**y, 10**predicted, edgecolors=(0, 0, 0))
-    ax.plot([min(10**y), max(10**y)], [min(10**y), max(10**y)], 'r--', lw=4)
+    ax.scatter(10**y - 1, 10**predicted -1, edgecolors=(0, 0, 0))
+    ax.plot([min(10**y -1), max(10**y -1)], [min(10**y -1), max(10**y -1)], 'r--', lw=4)
 
     # Adding lines representing a confidence interval of width = 2*sigma
-    ax.plot([min(10**y), max(10**y)], [min(10**y)*(1+0.34), max(10**y)*(1+0.34)], 'y--', lw=2)
-    ax.plot([min(10**y), max(10**y)], [min(10**y)*(1-0.34), max(10**y)*(1-0.34)], 'y--', lw=2)
+    ax.plot([min(10**y -1), max(10**y -1)], [min(10**y -1)*(1+0.34), max(10**y -1)*(1+0.34)], 'y--', lw=2)
+    ax.plot([min(10**y -1), max(10**y -1)], [min(10**y -1)*(1-0.34), max(10**y -1)*(1-0.34)], 'y--', lw=2)
     
     ax.set(xlabel='Original', ylabel='Predicted', xscale='log', yscale='log')
     ax.set_title('Correlation plot: True values vs Predicted values')
@@ -66,8 +66,8 @@ def cloud_of_points(predictions,target,massHalo, mean_halo, std_halo):
     massHalo = (massHalo*std_halo) + mean_halo
 
     # Converting output values to original scale
-    predictions = 10 ** predictions
-    target = 10 ** target
+    predictions = 10 ** predictions -1
+    target = 10 ** target -1
 
     #Plotting theoretical and predicted result in order to compare them 
     fig, axs = plt.subplots(1,2, figsize = (10,5))

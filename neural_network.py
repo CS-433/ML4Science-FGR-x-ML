@@ -41,7 +41,9 @@ class customized_increasing_NN(nn.Module, talos.utils.TorchHistory):
 class my_FNN_increasing_masking(nn.Module):
 
     """Class to define the architecture. The hyperparameters chosen after talos optimization are:
-    {'nr_hidden_layer:4, hidden_layers_size:16, dropout_rate:0.1, lr:0.1} -> for masking
+    {'nr_layers:4, hidden_layer_size:16, activation: ReLU(), dropout_rate:0.05, lr:0.01}
+    This architecture has been used on the whole dataset (every simulation) after applying the masking procedure.
+    You need to set lr = 0.01 in params before using this architecture.
     """
 
     def __init__(self,num_feature, dtype):
@@ -57,7 +59,7 @@ class my_FNN_increasing_masking(nn.Module):
         self.l4 = nn.Linear(64,128,dtype=dtype) 
         self.reLU4 = nn.ReLU()
         self.l5 = nn.Linear(128,1,dtype=dtype) 
-        self.dropout = nn.Dropout(0.1)
+        self.dropout = nn.Dropout(0.05)
 
     def forward(self,input):
 
