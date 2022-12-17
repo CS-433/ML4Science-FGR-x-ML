@@ -80,3 +80,46 @@ class my_FNN_increasing_masking(nn.Module):
         out = self.l5(out)
   
         return out
+
+class my_FNN_increasing_NOmasking(nn.Module):
+
+    """Class to define the architecture. The hyperparameters chosen after talos optimization are:
+    {'nr_layers:4, hidden_layer_size:32, activation: LeakyReLU(), dropout_rate:0.1, lr:0.01}
+    This architecture has been used on the whole dataset (every simulation) WITHOUT applying the masking procedure.
+    You need to set lr = 0.01 in params before using this architecture.
+    """
+
+    def __init__(self,num_feature, dtype):
+        # Importing methods and attributes from Module
+        super().__init__()
+        # Generating and initializing each layer
+        self.l1 = nn.Linear(num_feature,32,dtype=dtype)
+        self.reLU1 = nn.LeakyReLU()
+        self.l2 = nn.Linear(32,64,dtype=dtype)
+        self.reLU2 = nn.LeakyReLU()
+        self.l3 = nn.Linear(64,128,dtype=dtype)
+        self.reLU3 = nn.LeakyReLU()
+        self.l4 = nn.Linear(128,256,dtype=dtype) 
+        self.reLU4 = nn.LeakyReLU()
+        self.l5 = nn.Linear(256,1,dtype=dtype) 
+        self.dropout = nn.Dropout(0.1)
+
+    def forward(self,input):
+
+        "Function to implement the forward pass"
+
+        out = self.l1(input)
+        out = self.reLU1(out)
+        out = self.dropout(out)
+        out = self.l2(out)
+        out = self.reLU2(out)
+        out = self.dropout(out)
+        out = self.l3(out)
+        out = self.reLU3(out)
+        out = self.dropout(out)
+        out = self.l4(out)
+        out = self.reLU4(out)
+        out = self.dropout(out)
+        out = self.l5(out)
+  
+        return out

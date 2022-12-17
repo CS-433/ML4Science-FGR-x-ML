@@ -242,7 +242,6 @@ def get_dataset_z_fixed(folder_path, features = ['MassHalo','Nsubs','MassBH','do
     return data, target, data.shape[1]
 
 
-
 def get_all_dataset(folder_path, features = ['MassHalo','Nsubs','MassBH','dotMassBH','SFR','Flux','Density','Temp','VelHalo', 'z', 'M_HI'], masking=True):
     """
     Function to retrieve all the data obtained from the simulations.
@@ -318,14 +317,13 @@ def get_all_dataset(folder_path, features = ['MassHalo','Nsubs','MassBH','dotMas
         data = data[mask]
 
     # Computing log transformation
-    data[:,[0,7,8]] = np.log(1 + data[:,[0,7,8]])
+    data[:,[0,7,8]] = np.log10(10 + data[:,[0,7,8]])
 
     # Collecting output values
     target = np.array(support_data['M_HI'], dtype=np.float64)[mask] if masking else np.array(support_data['M_HI'],
                                                                                              dtype=np.float64)
 
     return data, target, data.shape[1]
-
 
 
 def optimization_using_talos(X_train, y_train, X_test, y_test, p):

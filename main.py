@@ -28,7 +28,7 @@ if __name__ == '__main__':
     
     # Loading dataset
     # The function to load data depends on the redshift(s) and simulation(s) one is considering -> here z = 0.95,
-    X, y, dim_feat = get_single_dataset('./outputs_test2/LH_0/MHI_LH0_z=0.950.hdf5', masking=True)
+    X, y, dim_feat = get_all_dataset('./outputs_test2', masking=False)
 
     # Scaling the output. By computing the logarithmic transformation, we want that our network learns the order of the mass and as many digits as possible regarding its magnitude. Notice that we add 1 to the target in order to avoid problems with small values
     y = np.log10(1 + y)
@@ -97,6 +97,9 @@ if __name__ == '__main__':
         # Importing model and move it to GPU (if available)
         if params.masking == True:
             model = my_FNN_increasing_masking(dim_feat,params.dtype)
+        else:
+             model = my_FNN_increasing_NOmasking(dim_feat,params.dtype)
+
         if(torch.cuda.is_available()): # for the case of laptop with local GPU
             model = model.cuda()
 
@@ -114,6 +117,8 @@ if __name__ == '__main__':
 
         if params.masking == True:
             model = my_FNN_increasing_masking(dim_feat,params.dtype)
+        else:
+            model = my_FNN_increasing_NOmasking(dim_feat,params.dtype)
 
         # Defining optimizer
         optimizer = optim.SGD(model.parameters(), lr=params.lr)
@@ -280,6 +285,8 @@ if __name__ == '__main__':
     # Defining the model
     if params.masking==True:
         best_model = my_FNN_increasing_masking(dim_feat,params.dtype)
+    else:
+        best_model = my_FNN_increasing_NOmasking(dim_feat,params.dtype)
 
     checkpoint = torch.load(PATH)
 
