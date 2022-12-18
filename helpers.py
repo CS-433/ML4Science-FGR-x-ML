@@ -317,7 +317,7 @@ def get_all_dataset(folder_path, features = ['MassHalo','Nsubs','MassBH','dotMas
         data = data[mask]
 
     # Computing log transformation
-    data[:,[0,7,8]] = np.log10(10 + data[:,[0,7,8]])
+    data[:,[0,7,8]] = np.log10(1 + data[:,[0,7,8]])
 
     # Collecting output values
     target = np.array(support_data['M_HI'], dtype=np.float64)[mask] if masking else np.array(support_data['M_HI'],
