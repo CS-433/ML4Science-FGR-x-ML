@@ -18,11 +18,23 @@ Notice that, since we used `pytorch-cuda11.6`, the content of `main.py` and `tal
 In order to reproduce the resultes showed in the paper, [data](https://mega.nz/file/U1FTyALK#zr1NLKa_bEX9t3oFPTlYaw4sonbTuRVyWUXNsUcVQFk) must be placed in a folder called `outputs_test2` that has to be in the same working directory as the notebooks of this repo. `outputs_test2` will then contain several folders ( $LH_{i}$ ) corresponding to simulations obtained considering different cosmological and astrophysical constants. 
 
 ## Description of notebooks
-Here you can find a detailed description of what each file in the repo contains. 
-- `helpers.py`: implementation of  all the "support" functions used in others .py files.
-- `neural_network.py`: implementation of the architecture we use to make our predictions.
-- `params.py`:  here there are all the parameters we needed to train our model. We decided to create this file to increase the readability of the code.
-- `main.py`: in this python file we actually train our model and generate all the plots we used in support of our numerical results.
-- `talos_optimization.py`: in this file we used e `talos` library to do optimization of the following hyperparameters in our architecture: *number of layers, layer_size of first layer (the following layers grow as a power of 2), dropout, learning rate*.  
+Here you can find a detailed description of what each file in this repository contains.
+- `EXPLORATORY_ANALYSIS.ipynb`: jupyter notebook containing an initial exploratory analysis of the data computed at the beginning of the project. This analysis has been extremely useful in order to identify informative features and remove useless covariates.
+- `helpers.py`: implementation of all the "support" functions used in others .py files.
+- `main.py`:  python file used to train and validate the final model and generate all the plots used as support for the numerical results we obtained.
+- `neural_network.py`: implementation of the architectures we used to obtain final results and predictions.
+- `params.py`: file containing the parameters we had to set before training the final model. We decided to create this file to increase the readability of the code.
+- `plots.py`: file containing functions used to plot results and save images, later stored in `results` folder.
+- `results_talos.ipynb` : jupyter notebook containing a detailed analysis of the results obtained after running `talos_optimization.py`. This notebook was used in order to choose the best set of hyperparameters to use when running `main.py`.
+- `talos_optimization.py`: in this file we used  `talos` library to find the best hyperparameters for the final architecture: *number of layers, layer_size of first layer (the following layers grow as a power of 2), dropout, learning rate*. 
+- `utils.cosm.py`: file containing helper functions used to approximate data using state-of-the-art approximating models (e.g; recent model suggested by Padmanabhan).
+
+## Description of folders
+Here you can find a detailed description of what each folder in this repository contains.
+- `results`: folder containing the results (loss values, $R^2$ score, images) related to the final models presented in the paper.
+- `talos_results`: folder containing the results produced by `talos_optimization.ipynb`.
+- `WEEKLY MEETING`: folder containing presentations documenting the results and improvements obtained while working on the project.
+
+
 
 
