@@ -15,7 +15,7 @@ We worked with `python3.8.5`. The Python libraries used are `numpy`,`pytorch1.13
 Notice that, since we used `pytorch-cuda11.6`, the content of `main.py` and `talos_optimization.py` can be run using GPU if available.
 
 ## Data and reproducibility of the code
-In order to reproduce the resultes showed in the paper, data (https://mega.nz/file/U1FTyALK#zr1NLKa_bEX9t3oFPTlYaw4sonbTuRVyWUXNsUcVQFk) must be placed in a folder called `outputs_test2` that has to be in the same working directory as the notebooks of this repo. `outputs_test2` will then contain several folders ($LH_{i}$) corresponding to simulations obtained considering different cosmological and astrophysical constants. 
+In order to reproduce the resultes showed in the paper, [data] (https://mega.nz/file/U1FTyALK#zr1NLKa_bEX9t3oFPTlYaw4sonbTuRVyWUXNsUcVQFk) must be placed in a folder called `outputs_test2` that has to be in the same working directory as the notebooks of this repo. `outputs_test2` will then contain several folders ($LH_{i}$) corresponding to simulations obtained considering different cosmological and astrophysical constants. 
 
 ## Description of notebooks
 Here you can find what each file in the repo does. The order in which they are described follows the pipeline we used to obtain our results.
