@@ -32,7 +32,7 @@ Here you can find a detailed description of what each file in this repository co
 ## Description of folders
 Here you can find a detailed description of what each folder in this repository contains.
 - `results`: folder containing the results (loss values, $R^2$ score, images) related to the final models presented in the paper.
-- `talos_results`: folder containing the results produced by `talos_optimization.ipynb`.
+- `talos_results`: folder containing the results produced by `talos_optimization.py`.
 - `WEEKLY MEETING`: folder containing presentations documenting the results and improvements obtained while working on the project.
 
 
