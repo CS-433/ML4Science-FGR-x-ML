@@ -1,6 +1,6 @@
 # ASTROLAB
-In the repository you can find the code we used for a project proposed by [ASTROLAB](https://www.epfl.ch/labs/lastro/) at EPFL in collaboration with the global project [HIRAX](https://hirax.ukzn.ac.za/). The goal of this project was to train a model able to predict the Mass of Hydrogen in galaxies based on some other features such as Mass of halos, mass of black holes in the halo, Temperature, Density, SFR (Star Formation Rate),...  
-To solve this problem, we trained a Fully-Connected Neural Network using `pytorch`. After optmizing the architecture using `talos`,  we ended up with the following network:
+In this repository you can find the code we used for the project proposed by [ASTROLAB](https://www.epfl.ch/labs/lastro/) at EPFL in collaboration with the global project [HIRAX](https://hirax.ukzn.ac.za/). The goal of this project was to train a model able to predict the Mass of Hydrogen in galaxies using astrophysical and cosmological input features, such as the mass of hosting halo ($M_{Halo}$), mass of black holes in the halo ($Mass_{BH}$), temperature (Temp), Density and SFR (Star Formation Rate)-  
+In order to solve this problem, we trained a Fully-Connected Neural Network using `pytorch`. After optimizing the architecture using `talos` library, we ended up with two different networks depending on whether we focused on the whole dataset or only on halos having mass values larger then $10^10$ solar mass units.
 
 The supervisor of the project was Dr. Michele Bianco.
 
@@ -10,13 +10,12 @@ Our team (named `FGRxML`) is composed by:
 - D'Angeli Gabriele: [@gabrieledangeli](https://github.com/gabrieledangeli)  
 - Di Gennaro Federico: [@FedericoDiGenanro](https://github.com/FedericoDiGennaro)  
 
-# Project pipeline
-
 ## Environment:
-We worked with `python3.8.5`. The Python's libraries used are `numpy`,`pytorch`,`talos`, `pandas`, `matplotlib` and `seaborn`.
+We worked with `python3.8.5`. The Python libraries used are `numpy`,`pytorch1.13.0`,`talos`, `pandas`, `matplotlib` and `seaborn`.
+Notice that, since we used `pytorch-cuda11.6`, the content of `main.py` and `talos_optimization.py` can be run using GPU if available.
 
 ## Data and reproducibility of the code
-For the code reproducibility, the datasets must be placed in a folder called `?????????` that must be in the same working directory as the notebooks in this repo. The `data` folder must contain the other folders that refers to each LH called `LH_i`. In each folder LH_i, there have to be HDF5 files that we read in our code to build our data matrix $X$.
+In order to reproduce the resultes showed in the paper, data (https://mega.nz/file/U1FTyALK#zr1NLKa_bEX9t3oFPTlYaw4sonbTuRVyWUXNsUcVQFk) must be placed in a folder called `outputs_test2` that has to be in the same working directory as the notebooks of this repo. `outputs_test2` will then contain several folders ($LH_{i}$) corresponding to simulations obtained considering different cosmological and astrophysical constants. 
 
 ## Description of notebooks
 Here you can find what each file in the repo does. The order in which they are described follows the pipeline we used to obtain our results.
