@@ -61,7 +61,7 @@ def correlation_plot_hist(predicted, y):
 def correlation_plot(predicted, y):
     """
     Visualization of predicted values against theoretical values using a logarithmic scale on both axes.
-    The following function returns a scatter plot of the data. Depending on the totla number of the datapoints, it might be better
+    The following function returns a scatter plot of the data. Depending on the total number of the datapoints, it might be better
     to choose correlation_plot_hist
     
     Args:
