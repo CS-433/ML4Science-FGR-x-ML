@@ -1,4 +1,4 @@
-""" Useful functions used to get prediction of Mass_HI from the model currently used to approximate the M_HI vs Mass_Halo relation"""
+""" Useful functions used to get Mass_HI predictions from the models currently used to approximate the M_HI vs Mass_Halo relation"""
 import numpy as np
 #import astropy.units as u
 
