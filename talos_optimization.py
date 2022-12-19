@@ -9,7 +9,7 @@ import pandas as pd
 
 ##### GLOBAL ENVIRONMENT #####
 
-# Defining parameters to test during optimization
+# Defining parameters to test during optimization. This dictionary is used by Talos lbrary in order to train different models and return scan_object
 p = {'nr_layers':[3,4],
      'hidden_layer_size': [16,32,64],
      'activation': [nn.ReLU(), nn.LeakyReLU()],
@@ -21,10 +21,13 @@ p = {'nr_layers':[3,4],
 if __name__ == '__main__':
     
     # Loading dataset
-    # The function to load data depends on the redshift(s) and simulation(s) one is considering
+    # The function to load data depends on the redshift(s) and simulation(s) one is considering. The optimization process was computed both 
+    # considering LH or z fixed, therefore one of these functions should be used to reproduce the results showd in the paper.
     X, y, dim_feat= get_dataset_LH_fixed('./outputs_test2/LH_0')
+    # X, y, dim_feat= get_dataset_z_fixed('./outputs_test2', z = insert_value)
 
-    # Scaling the output. By computing the logarithmic transformation, we want that our network learns the order of the mass and as many digits as possible regarding its magnitude
+    # Scaling the output. By computing the logarithmic transformation, we want our network to learn the order of magnitude of the Mass_HI
+    # and as many digits as possible regarding the mantissa (see Pre-Processing section in the related paper for a better explanation)
     y = np.log10(1 + y)
 
     # Splitting data into train and test set: 75 % train, 25%
@@ -38,8 +41,8 @@ if __name__ == '__main__':
     scan_object = talos.Scan(x=X_train, y=y_train, x_val=X_test, y_val=y_test, params=p, model=optimization_using_talos,
         experiment_name='validation_hyperparameters')
 
-    # Be sure that the folder validation_hyperparameters only has one file inside. 
-    # The following lines add average train and test loss over the epochs for each model to the result created by talos
+    # Be sure that the folder validation_hyperparameters only has one file inside (namely, the results given by the previous line of code).
+    # The following lines add average train and test loss over the epochs for each model to the result file created by talos
 
     # Retrieving name of created file
     name_file = listdir('./validation_hyperparameters')
@@ -47,7 +50,7 @@ if __name__ == '__main__':
         raise TypeError('More than one file in validation_hyperparameters')
     name_file = name_file[0]
 
-    # Adding average columns
+    # Adding average columns using pandas 
     df = pd.read_csv('./validation_hyperparameters/' + name_file, delimiter = ',')
     df['average_train_loss'] = pd.Series([np.mean(model['loss']) for model in scan_object.round_history])
     df['average_test_loss'] = pd.Series([np.mean(model['val_loss']) for model in scan_object.round_history])

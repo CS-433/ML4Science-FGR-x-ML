@@ -17,7 +17,8 @@ from neural_network import *
 
 class Customized_dataset(Dataset):
     """ 
-    This class allows to use DataLoader method from Pytorch to create train and test data
+    This class allows to use DataLoader method from Pytorch to create train and test data.
+    As described in Pytorch documentation, implementing __len__ and __getitem__ magic methods is required.
     """
 
     def __init__(self,X,target):
@@ -67,15 +68,15 @@ def get_single_dataset(path, features = ['MassHalo','Nsubs','MassBH','dotMassBH'
         else:
             data[:,idx] = f[feature][:]
     
-    # Defining mask to avoid having too many zero values. THe mask filter all halos having mass values larger thant 1e10
+    # Defining mask to avoid having too many zero values. The mask filters all halos having mass values larger thant 1e10
     if masking:
         mask = (data[:,2] != 0) & (data[:,3] != 0) & (data[:,4] != 0) # the masking is done w.r.t. MassBH, dotMassBH and SFR values
         data = data[mask]
 
-    # Computing log transform
+    # Computing log transform of features having skewed distributions
     data[:,[0,7,8]] = np.log(1 + data[:,[0,7,8]])
 
-    # Collecting output values
+    # Collecting output values with the appropriate data type
     target = np.array(f['M_HI'][:], dtype = np.float64)
     
     if masking:
@@ -89,7 +90,7 @@ def get_single_dataset(path, features = ['MassHalo','Nsubs','MassBH','dotMassBH'
 
 def get_dataset_LH_fixed(folder_path, features = ['MassHalo','Nsubs','MassBH','dotMassBH','SFR','Flux','Density','Temp','VelHalo','z','M_HI'], masking=True):
     """
-    Function to retrieve all the datasets related to a fixed simulation (fixed LH, different redshifts). Since all the observations share the same astrophysical and cosmological
+    Function to retrieve all the datasets related to a precise set of simulations (fixed LH, different redshifts). Since all the observations share the same astrophysical and cosmological
     constants, these values are not considered as features since they would provide useless information.
     
     Args:
@@ -127,7 +128,7 @@ def get_dataset_LH_fixed(folder_path, features = ['MassHalo','Nsubs','MassBH','d
         for feature in features:
 
             if feature == 'z':
-                # Since we have observations with different redshifts, we add this value to the feature we consider to train the model
+                # Since we have observations with different redshifts, we add this value to the features we consider to train the model
                 support_data[feature].extend( [z[idx]]*dim )
 
             elif feature == 'VelHalo':
@@ -146,15 +147,15 @@ def get_dataset_LH_fixed(folder_path, features = ['MassHalo','Nsubs','MassBH','d
 
         data[:,idx] = np.array(support_data[feature])
 
-    # Defining mask to avoid having too many zero values. The mask filter all halos having mass values larger thant 1e10
+    # Defining mask to avoid having too many zero values. The mask filters all halos having mass values larger thant 1e10
     if masking:
         mask = (data[:,2] != 0) & (data[:,3] != 0) & (data[:,4] != 0) # the masking is done w.r.t. MassBH, dotMassBH and SFR values
         data = data[mask]
 
-    # Computing log transformation
+    # Computing log transformation of features having skewed distributions
     data[:,[0,7,8]] = np.log(1 + data[:,[0,7,8]])
 
-    # Collecting output values
+    # Collecting output values with the appropriate data type
     target = np.array(support_data['M_HI'], dtype = np.float64)
     
     if masking:
@@ -165,7 +166,7 @@ def get_dataset_LH_fixed(folder_path, features = ['MassHalo','Nsubs','MassBH','d
 
 def get_dataset_z_fixed(folder_path, features = ['MassHalo','Nsubs','MassBH','dotMassBH','SFR','Flux','Density','Temp','VelHalo', 'M_HI'], z = 0.950, masking=True):
     """
-    Function to retrieve all the datasets related to a fixed redshift (different LH, fixed z). SInce z is fixed, its values is not considered as a feature 
+    Function to retrieve all the datasets related to a fixed set of simulations (different LH, fixed z). Since z is fixed, this parameter is not considered as a feature 
     since it would provide useless information.
 
     Args:
@@ -228,15 +229,15 @@ def get_dataset_z_fixed(folder_path, features = ['MassHalo','Nsubs','MassBH','do
     for idx,feature in enumerate(features):
         data[:,idx] = np.array(support_data[feature])
 
-    # Defining mask to avoid having too many zero values. THe mask filter all halos having mass values larger thant 1e10
+    # Defining mask to avoid having too many zero values. THe mask filters all halos having mass values larger thant 1e10
     if masking:
         mask = (data[:, 2] != 0) & (data[:, 3] != 0) & (data[:, 4] != 0) # the masking is done w.r.t. MassBH, dotMassBH and SFR values
         data = data[mask]
 
-    # Computing log transformation
+    # Computing log transformation of features having skewed distributions
     data[:,[0,7,8]] = np.log(1 + data[:,[0,7,8]])
 
-    # Collecting output values
+    # Collecting output values with appropriate data type
     target = np.array(support_data['M_HI'], dtype=np.float64)[mask] if masking else np.array(support_data['M_HI'], dtype=np.float64)
 
     return data, target, data.shape[1]
@@ -244,7 +245,7 @@ def get_dataset_z_fixed(folder_path, features = ['MassHalo','Nsubs','MassBH','do
 
 def get_all_dataset(folder_path, features = ['MassHalo','Nsubs','MassBH','dotMassBH','SFR','Flux','Density','Temp','VelHalo', 'z', 'M_HI'], masking=True):
     """
-    Function to retrieve all the data obtained from the simulations.
+    Function to retrieve all the data obtained from the simulations. All the possible values for LH and redshift parameters are considered.
     
     Args:
         path: string indicating where to find the file
@@ -256,6 +257,10 @@ def get_all_dataset(folder_path, features = ['MassHalo','Nsubs','MassBH','dotMas
         target: array of shape (N,) containing the true output value of each observation
         shape : scalar corresponding to the number of features
      """
+
+    # Checking consistency of the input
+    if feature[-1] != 'M_HI':
+        raise Exception
 
     # In addition to the input features, we also consider cosmological and astrophysical constants used to obtain the simulated data collected in the files in folder path
     astro_consts = ['Om0', 'sigma8', 'Asn1', 'Aagn1', 'Asn2', 'Aagn2']
@@ -316,10 +321,10 @@ def get_all_dataset(folder_path, features = ['MassHalo','Nsubs','MassBH','dotMas
                     data[:, 4] != 0)  # the masking is done w.r.t. MassBH, dotMassBH and SFR values
         data = data[mask]
 
-    # Computing log transformation
+    # Computing log transformation of features with skewed distributions
     data[:,[0,7,8]] = np.log10(1 + data[:,[0,7,8]])
 
-    # Collecting output values
+    # Collecting output values with appropriate data type
     target = np.array(support_data['M_HI'], dtype=np.float64)[mask] if masking else np.array(support_data['M_HI'],
                                                                                              dtype=np.float64)
 
@@ -329,6 +334,7 @@ def get_all_dataset(folder_path, features = ['MassHalo','Nsubs','MassBH','dotMas
 def optimization_using_talos(X_train, y_train, X_test, y_test, p):
     """
     Function to perform cross validation on the neural network to find the best hyperparameters.
+    This function is used in talos_optimization.py.
     
     Args:
         X_train : numpy array of size (N,D) containing train data
@@ -361,14 +367,15 @@ def optimization_using_talos(X_train, y_train, X_test, y_test, p):
 
     gc.collect()
 
-    # Initializing the model
+    # Initializing the model. The following model depends on the values contained in the dictionary passed as an input
     model = customized_increasing_NN(p,X_train.shape[1],params.dtype)
     if torch.cuda.is_available():
         model = model.cuda()
 
-    # Initializing tools for learning process
+    # Initializing tools to use during learning process
     criterion = nn.MSELoss()
     optimizer = optim.SGD(model.parameters(), lr = p['lr'])
+    # Defining scheduler, in order to reduce the learning rate when needed and speed up the training procedure
     scheduler = ReduceLROnPlateau(optimizer = optimizer, mode = 'min', factor = 0.1, patience = 20, min_lr=1e-12, verbose=False)
     
     # Initializing history of the net
