@@ -27,10 +27,12 @@ if __name__ == '__main__':
     gc.collect()
     
     # Loading dataset
-    # The function to load data depends on the redshift(s) and simulation(s) one is considering -> here z = 0.95,
+    # The function to load data depends on the redshift(s) and simulation(s) one is considering
+    # Please refer to helpers.py to know how to retrieve data depending on the choice of these parameters
     X, y, dim_feat = get_all_dataset('./outputs_test2', masking=False)
 
-    # Scaling the output. By computing the logarithmic transformation, we want that our network learns the order of the mass and as many digits as possible regarding its magnitude. Notice that we add 1 to the target in order to avoid problems with small values
+    # Scaling the output. By computing the logarithmic transformation, we want our network to learn the order of magnitude of M_HI and 
+    # as many digits as possible regarding the mantissa. Notice that we add 1 to the target in order to avoid problems with small values
     y = np.log10(1 + y)
 
     # Splitting data into train and test set: 75 % train, 20% test, 5% validation
@@ -48,7 +50,7 @@ if __name__ == '__main__':
 
     # Since we do not want to iterate over the validation set, we only convert it to a tensor
     X_val, y_val = torch.tensor(X_val), torch.tensor(y_val)
-    if torch.cuda.is_available(): # if a GPU is available, we move the validation data to this device
+    if torch.cuda.is_available(): # if a GPU is available, we move the validation data to this device to later speed up the validation process
         X_val = X_val.cuda()
         y_val = y_val.cuda()
 
@@ -65,12 +67,12 @@ if __name__ == '__main__':
 
     gc.collect()
 
-#------- IMPORTING AN ALREADY TRAINED MODEL (IF FIRST_RUN = FALSE) OR INITIALIZING TOOLS TO TRAIN THE NETWORK -------#
+#------- IMPORTING AN ALREADY TRAINED MODEL (IF FIRST_RUN = FALSE) OR INITIALIZING TOOLS TO TRAIN THE NETWORK (IF FIRST_RUN = TRUE) -------#
     
     # Defining num_epochs
     epochs = params.epochs
 
-    #Defining loss function and move it to GPU (if available)
+    # Defining loss function and move it to GPU (if available)
     criterion = nn.MSELoss()
     if torch.cuda.is_available():
         criterion.cuda()
@@ -89,18 +91,21 @@ if __name__ == '__main__':
         R2_epoch_test = [] # it will contain R2 score on test data of the different epochs
         R2_epoch_train = [] # it will contain R2 score on train data of the different epochs
         
-        # Initializing number of epochd and loss
+        # Initializing number of epochs and loss
         final_epoch=epochs
         prev_loss=torch.inf
         current_epoch=0
 
         # Importing model and move it to GPU (if available)
+        # The choice of the model should reflect the way we load the data (masking or non masking model depending on the boolean value given as
+        # input when retrieving data at the beginning of the notebook)
+
         if params.masking == True:
             model = my_FNN_increasing_masking(dim_feat,params.dtype)
         else:
              model = my_FNN_increasing_NOmasking(dim_feat,params.dtype)
 
-        if(torch.cuda.is_available()): # for the case of laptop with local GPU
+        if(torch.cuda.is_available()): # for the case of device with local GPU
             model = model.cuda()
 
         # Defining optimizer (Stochastic Gradient Descent)
@@ -109,7 +114,10 @@ if __name__ == '__main__':
         # Defining a scheduler to adjust the learning rate in case of slow learning process
         scheduler = ReduceLROnPlateau(optimizer = optimizer, mode = 'min', factor = 0.1, patience = 20, min_lr=1e-12, verbose=True)
 
-    # If a model has already been trained
+    # If a model has already been trained (and therefore provisional results are contained in checkpoints folder).
+    # This is particularly useful when training the model for a large number of epochs (you can divide the problem in subruns) or when using 
+    # an external cluster
+
     else:
 
         # Resuming the training from last_model
@@ -133,7 +141,7 @@ if __name__ == '__main__':
         model.load_state_dict(checkpoint['model_state'])
 
         # Importing model and move it to GPU (if available)
-        if(torch.cuda.is_available()): # for the case of laptop with local GPU
+        if(torch.cuda.is_available()): # for the case of device with local GPU
             model = model.cuda()
 
         # Importing final state of the optimizer from previous run
@@ -177,7 +185,7 @@ if __name__ == '__main__':
         for batch_idx, (data,target) in enumerate(train_loader):
 
             # Moving data to the GPU if possible
-            if(torch.cuda.is_available()): # for the case of laptop with local GPU
+            if(torch.cuda.is_available()): # for the case of device with local GPU
                 data,target = data.cuda(), target.cuda()
 
             # Setting the gradient attribute of each weight to zero
@@ -294,26 +302,34 @@ if __name__ == '__main__':
     best_model.load_state_dict(checkpoint['model_state'])
 
     # Importing model and move it to GPU (if available)
-    if(torch.cuda.is_available()): # for the case of laptop with local GPU
+    if(torch.cuda.is_available()): # for the case of device with local GPU
         best_model = best_model.cuda()
 
     # After importing the model, we just need to compute the prediction on validation data
     with torch.no_grad():
-        # Compunting the output on validation data
+        # Computing the output on validation data.
+        # Since we use torch.no_grad(), the operation is not added to the computation graph and the procedure is thereefore less complex
         output_validation = best_model(X_val)
 
     # Clearing active figures     
     plt.clf()
 
     # Visualizing cloud of points to see if the network performs better than the empirical approximation (logarithmic function) so far used in the field
+    # The following plot offers an overall view about the performance of the network. For a better analysis, please refer to R2 score and
+    # and correlation plot saved in checkpoints folder
     cloud_of_points(output_validation.cpu().detach().numpy(), y_val.cpu().detach().numpy(), 
                     X_val[:,0].cpu().detach().numpy(), mean_train[0], std_train[0])
     plt.savefig('./checkpoints/cloud_of_points.png', bbox_inches='tight')
 
     plt.clf()
     # Visualizing predicted values against theoretical ones
+    # Depending on the total number of datapoints in validation set, it might be better to choose correlation_plot or correlation_plot_hist
+    # Please refer to plots.py to know more about the difference
     correlation_plot(output_validation.cpu().detach().numpy(), y_val.cpu().detach().numpy())
     plt.savefig('./checkpoints/correlation_plot.png', bbox_inches='tight') # saving correlation plot
+    correlation_plot_hist(output_validation.cpu().detach().numpy(), y_val.cpu().detach().numpy())
+    plt.savefig('./checkpoints/correlation_plot_hist.png', bbox_inches='tight') # saving correlation plot hist
+
 
 
 
