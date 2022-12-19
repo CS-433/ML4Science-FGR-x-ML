@@ -2,7 +2,7 @@
 
 import matplotlib.pyplot as plt
 import numpy as np
-
+from matplotlib.colors import LogNorm
 
 ##### VISUALIZATION TOOLS #####
 
@@ -29,6 +29,20 @@ def visualization(losses_test, losses_train, R2_train, R2_test):
     axs[1].grid(visible=True)
     axs[1].set(ylim = [-1,1])
     axs[1].legend()
+
+
+def correlation_plot_hist(predicted, y):
+    N, xbin, ybin = np.histogram2d(y, predicted, bins=200)
+    N = N.T
+    x_cent = 0.5*(xbin[1:]+xbin[:-1])
+    y_cent = 0.5*(ybin[1:]+ybin[:-1])
+
+    fig = plt.figure(figsize=(20, 7))
+    ax = fig.add_subplot(131, title='Correlation plot')
+    plt.pcolormesh(x_cent, y_cent, N, norm=LogNorm())
+    plt.colorbar()
+
+
 
 def correlation_plot(predicted, y):
     """
