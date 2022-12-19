@@ -1,5 +1,5 @@
 # ASTROLAB
-In this repository you can find the code we used for the project proposed by [ASTROLAB](https://www.epfl.ch/labs/lastro/) at EPFL in collaboration with the global project [HIRAX](https://hirax.ukzn.ac.za/). The goal of this project was to train a model able to predict the Mass of Hydrogen in galaxies using astrophysical and cosmological input features, such as the mass of hosting halo ($M_{Halo}$), mass of black holes in the halo ($Mass_{BH}$), temperature (Temp), Density and SFR (Star Formation Rate). $Mass_{Halo}$
+In this repository you can find the code we used for the project proposed by [ASTROLAB](https://www.epfl.ch/labs/lastro/) at EPFL in collaboration with the global project [HIRAX](https://hirax.ukzn.ac.za/). The goal of this project was to train a model able to predict the Mass of Hydrogen in galaxies using astrophysical and cosmological input features, such as the mass of hosting halo ( $M_{Halo}$ ), mass of black holes in the halo ( $Mass_{BH}$ ), temperature (Temp), Density and SFR (Star Formation Rate).
 In order to solve this problem, we trained a Fully-Connected Neural Network using `pytorch`. After optimizing the architecture using `talos` library, we ended up with two different networks depending on whether we focused on the whole dataset or only on halos having mass values larger then $10^{10}$ solar mass units.
 
 The supervisor of the project was Dr. Michele Bianco.
@@ -15,7 +15,7 @@ We worked with `python3.8.5`. The Python libraries used are `numpy`,`pytorch1.13
 Notice that, since we used `pytorch-cuda11.6`, the content of `main.py` and `talos_optimization.py` can be run using GPU if available.
 
 ## Data and reproducibility of the code
-In order to reproduce the resultes showed in the paper, [data](https://mega.nz/file/U1FTyALK#zr1NLKa_bEX9t3oFPTlYaw4sonbTuRVyWUXNsUcVQFk) must be placed in a folder called `outputs_test2` that has to be in the same working directory as the notebooks of this repo. `outputs_test2` will then contain several folders ($LH_{i}$) corresponding to simulations obtained considering different cosmological and astrophysical constants. 
+In order to reproduce the resultes showed in the paper, [data](https://mega.nz/file/U1FTyALK#zr1NLKa_bEX9t3oFPTlYaw4sonbTuRVyWUXNsUcVQFk) must be placed in a folder called `outputs_test2` that has to be in the same working directory as the notebooks of this repo. `outputs_test2` will then contain several folders ( $LH_{i}$ ) corresponding to simulations obtained considering different cosmological and astrophysical constants. 
 
 ## Description of notebooks
 Here you can find a detailed description of what each file in the repo contains. 
