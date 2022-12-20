@@ -41,21 +41,6 @@ if __name__ == '__main__':
     scan_object = talos.Scan(x=X_train, y=y_train, x_val=X_test, y_val=y_test, params=p, model=optimization_using_talos,
         experiment_name='validation_hyperparameters')
 
-    # Be sure that the folder validation_hyperparameters only has one file inside (namely, the results given by the previous line of code).
-    # The following lines add average train and test loss over the epochs for each model to the result file created by talos
-
-    # Retrieving name of created file
-    name_file = listdir('./validation_hyperparameters')
-    if len(name_file) > 1:
-        raise TypeError('More than one file in validation_hyperparameters')
-    name_file = name_file[0]
-
-    # Adding average columns using pandas 
-    df = pd.read_csv('./validation_hyperparameters/' + name_file, delimiter = ',')
-    df['average_train_loss'] = pd.Series([np.mean(model['loss']) for model in scan_object.round_history])
-    df['average_test_loss'] = pd.Series([np.mean(model['val_loss']) for model in scan_object.round_history])
-    df = df.sort_values(by = 'average_test_loss', ascending = True)
-    df.to_csv('results.csv')
 
 
 

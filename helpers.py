@@ -259,7 +259,7 @@ def get_all_dataset(folder_path, features = ['MassHalo','Nsubs','MassBH','dotMas
      """
 
     # Checking consistency of the input
-    if feature[-1] != 'M_HI':
+    if features[-1] != 'M_HI':
         raise Exception
 
     # In addition to the input features, we also consider cosmological and astrophysical constants used to obtain the simulated data collected in the files in folder path
