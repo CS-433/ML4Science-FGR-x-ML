@@ -11,7 +11,7 @@ Our team (named `FGRxML`) is composed by:
 - Di Gennaro Federico: [@FedericoDiGenanro](https://github.com/FedericoDiGennaro)  
 
 ## Environment:
-We worked with `python3.8.5`. The Python libraries used are `numpy`,`pytorch1.13.0`,`talos`, `pandas`, `matplotlib` and `seaborn`.
+We worked with `python3.8.5`. The Python libraries we used are `numpy`,`pytorch1.13.0`,`talos`, `pandas`, `matplotlib` and `seaborn`.
 Notice that, since we used `pytorch-cuda11.6`, the content of `main.py` and `talos_optimization.py` can be run using GPU if available.
 
 ## Data and reproducibility of the code
