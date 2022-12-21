@@ -35,7 +35,7 @@ def visualization(losses_test, losses_train, R2_train, R2_test):
 
 def correlation_plot_hist(predicted, y):
     """
-    Visualization of predicted values against theretical values using a logarithmic scale on both axes. 
+    Visualization of predicted values against theoretical values using a logarithmic scale on both axes. 
     The following function returns a 2d histogram to better visualize the result despite the large number of overlapping datapoints
     
     Args:
@@ -52,7 +52,7 @@ def correlation_plot_hist(predicted, y):
     x_cent = 0.5*(xbin[1:]+xbin[:-1])
     y_cent = 0.5*(ybin[1:]+ybin[:-1])
 
-    # PLotting the final result showing a colormap that reflects the density of points in every bin
+    # Plotting the final result showing a colormap that reflects the density of points in every bin
     fig = plt.figure(figsize=(20, 7))
     ax = fig.add_subplot(131, title='Correlation plot')
     plt.pcolormesh(x_cent, y_cent, N, norm=LogNorm())

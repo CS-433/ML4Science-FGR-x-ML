@@ -18,7 +18,7 @@ lr = 0.01 # learning rate given as input to the optimizer. During the learning p
           # Please refer to neural_network.py to set this parameter in a proper way depending on the architecture you are willing to use
 
 epochs = 1000 # number of total epochs used during the training process. When using the whole dataset (around 3 millions datapoints), it might 
-              # be convenient to choose a lower values in order to reduce the computationl complexity of the process
+              # be convenient to choose a low value in order to reduce the computationl complexity of the process
 
 dtype = torch.float64 # data type used to initialize each layer of the model
 

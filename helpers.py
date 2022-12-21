@@ -173,6 +173,7 @@ def get_dataset_z_fixed(folder_path, features = ['MassHalo','Nsubs','MassBH','do
         path: string indicating where to find the file
         features: list of features to extract from the dataset. M_HI must be always passed as last argument
         z: scalar corresponding to the analyzed redshift
+        masking : boolean indicating whether to remove zeros values or not. If true, the model is trained only considering halos whose mass is higher than 1e10
 
     Returns:
         data: array of shape (N,len(features)-1)
@@ -340,7 +341,7 @@ def optimization_using_talos(X_train, y_train, X_test, y_test, p):
         X_train : numpy array of size (N,D) containing train data
         y_train : numpy array of size (N,) containing train label
         X_test  : numpy array of size (K,D) containing test data
-        y_test  : numpy array of size (K,D) containing test label
+        y_test  : numpy array of size (K,) containing test label
         p : dictionary containing the hyperparameters used to define the network inside the function
         
     Returns:

@@ -308,14 +308,14 @@ if __name__ == '__main__':
     # After importing the model, we just need to compute the prediction on validation data
     with torch.no_grad():
         # Computing the output on validation data.
-        # Since we use torch.no_grad(), the operation is not added to the computation graph and the procedure is thereefore less complex
+        # Since we use torch.no_grad(), the operation is not added to the computation graph and the procedure is therefore less complex
         output_validation = best_model(X_val)
 
     # Clearing active figures     
     plt.clf()
 
     # Visualizing cloud of points to see if the network performs better than the empirical approximation (logarithmic function) so far used in the field
-    # The following plot offers an overall view about the performance of the network. For a better analysis, please refer to R2 score and
+    # The following plot offers an overall view about the performance of the network. For a better analysis, please refer to R2 score 
     # and correlation plot saved in checkpoints folder
     cloud_of_points(output_validation.cpu().detach().numpy(), y_val.cpu().detach().numpy(), 
                     X_val[:,0].cpu().detach().numpy(), mean_train[0], std_train[0])

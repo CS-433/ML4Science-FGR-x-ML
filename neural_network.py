@@ -45,7 +45,7 @@ class customized_increasing_NN(nn.Module, talos.utils.TorchHistory):
         out = self.ending_layer(out)
         return out
 
-##### ARCHITEECTURES USED TO RUN MAIN.PY AND OBTAIN FINAL RESULTS SHOWED IN THE PAPER #####
+##### ARCHITECTURES USED TO RUN MAIN.PY AND OBTAIN FINAL RESULTS SHOWED IN THE PAPER #####
 
 # The hyperparameters of these architectures (e.g. depth, num layers, activation function, dropout rate) have been decided after optimizing the model using talos library.
 # For further details, please refer to talos_optimization

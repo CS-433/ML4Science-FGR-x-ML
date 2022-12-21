@@ -9,7 +9,7 @@ import pandas as pd
 
 ##### GLOBAL ENVIRONMENT #####
 
-# Defining parameters to test during optimization. This dictionary is used by Talos lbrary in order to train different models and return scan_object
+# Defining parameters to test during optimization. This dictionary is used by Talos library in order to train different models and return scan_object
 p = {'nr_layers':[3,4],
      'hidden_layer_size': [16,32,64],
      'activation': [nn.ReLU(), nn.LeakyReLU()],
@@ -22,7 +22,7 @@ if __name__ == '__main__':
     
     # Loading dataset
     # The function to load data depends on the redshift(s) and simulation(s) one is considering. The optimization process was computed both 
-    # considering LH or z fixed, therefore one of these functions should be used to reproduce the results showd in the paper.
+    # considering LH or z fixed, therefore one of the following functions should be used to reproduce the results showed in the paper.
     X, y, dim_feat= get_dataset_LH_fixed('./outputs_test2/LH_0')
     # X, y, dim_feat= get_dataset_z_fixed('./outputs_test2', z = insert_value)
 
