@@ -15,7 +15,7 @@ We worked with `python3.8.5`. The Python libraries we used are `numpy`,`pytorch1
 Notice that, since we used `pytorch-cuda11.6`, the content of `main.py` and `talos_optimization.py` can be run using GPU if available.
 
 ## Data and reproducibility of the code
-In order to reproduce the resultes showed in the paper, [data](https://mega.nz/file/U1FTyALK#zr1NLKa_bEX9t3oFPTlYaw4sonbTuRVyWUXNsUcVQFk) must be placed in a folder called `outputs_test2` that has to be in the same working directory as the files of this repo. `outputs_test2` will then contain several folders ( $LH_{i}$ ) corresponding to simulations obtained considering different cosmological and astrophysical constants. As a last step, you must ensure to have txt files `params_IllustrisTNG.txt` and `redshifts.txt` (they are in the repo) in the `outputs_test2` folder. Please notice that the `outputs_test2` you must take to run the code is the inner one that is downloaded from the link provided.  
+In order to reproduce the resultes showed in the paper, [data](https://mega.nz/file/U1FTyALK#zr1NLKa_bEX9t3oFPTlYaw4sonbTuRVyWUXNsUcVQFk) must be placed in a folder called `outputs_test2` that has to be in the same working directory as the files of this repo. `outputs_test2` will then contain several folders ($LH_{i}$) corresponding to simulations obtained considering different cosmological and astrophysical constants. As a last step, you must ensure to have txt files `params_IllustrisTNG.txt` (it is in the repo) and `redshifts.txt` (it is directly downloaded from the link provided) in the `outputs_test2` folder. Please notice that the `outputs_test2` you must take to run the code is the inner one that is downloaded from the link provided.  
 After setting the environment correctly, you simply need to run the file `main.py`: as output, it will give you a `checkpoints` folder containing all the plots and the txt files with the results.  
 Another important aspect of our code is that it enables to stop the training process and then to restart it from the point on which it was interrupted; thanks to this strategy, the network can be trained locally without being forced to wait until a very long training is completed, and at the same time ensuring a backup in case something goes wrong. When running infact, several files will be created and used to keep track of of all the provisional results. In order to do so, you only have to set the variable `first_run=False` in `params.py` without modifying the `checkpoints` folder that has been created in the previous run.
 
@@ -29,7 +29,8 @@ Here you can find a detailed description of what each file in this repository co
 - `plots.py`: file containing functions used to plot results and save images, later stored in `results` folder.
 - `results_talos.ipynb` : jupyter notebook containing a detailed analysis of the results obtained after running `talos_optimization.py`. This notebook was used in order to choose the best set of hyperparameters to use when running `main.py`.
 - `talos_optimization.py`: in this file we used  `talos` library to find the best hyperparameters for the final architecture: *number of layers, layer_size of first layer (the following layers grow as a power of 2), dropout, learning rate*. 
-- `utils.cosm.py`: file containing helper functions used to approximate data using state-of-the-art approximating models (e.g; recent model suggested by Padmanabhan).
+- `utils.cosm.py`: file containing helper functions used to approximate data using state-of-the-art approximating models (e.g; recent model suggested by Padmanabhan). 
+- `report.pdf`: final report of our project
 
 ## Description of folders
 Here you can find a detailed description of what each folder in this repository contains.
